@@ -1,38 +1,138 @@
-# Python
+# ==================== Python ====================
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
 .venv/
 venv/
+ENV/
 env/
-*.egg-info/
-dist/
+env.bak/
+venv.bak/
+
+# Testing & Code Quality
 .pytest_cache/
 .mypy_cache/
+.dmypy.json
+dmypy.json
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
-# Variables de entorno — NUNCA subir al repo
-.env
-.env.local
-.env.*.local
-
-# Node / Frontend
+# ==================== Node / Frontend ====================
 node_modules/
 dist/
 build/
 .next/
-*.local
+.nuxt/
+out/
+.cache/
+.parcel-cache
+.parcel-state
+coverage/
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# IDEs
+# Vite
+.vite/
+
+# ==================== Environment Variables ====================
+# NEVER commit .env files with secrets
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# ==================== IDEs & Editors ====================
 .vscode/
 .idea/
-*.swp
-*.swo
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
 
-# Alembic
-*.pyc
+# VS Code
+.vscode-test
+.history/
+*.vsix
 
-# Logs
+# Jetbrains
+*.iml
+*.iws
+*.ipr
+
+# ==================== Logs ====================
 *.log
+*.log.*
 logs/
+*.out
+
+# ==================== OS ====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# ==================== Database ====================
+*.db
+*.sqlite
+*.sqlite3
+.pgpass
+
+# ==================== Docker ====================
+.docker/
+docker-compose.override.yml
+
+# ==================== Temporary Files ====================
+*.tmp
+*.temp
+*.bak
+*.backup
+.tmp/
+temp/
+
+# ==================== IDE-specific ====================
+.vscode/extensions.json
+.vscode/settings.json
+.vscode/launch.json
