@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "filesystem": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/francisco/git/UTN/grupo8/robledo/The-Food-Store---Gestioncopy/The-Food-Store---Gestion"
+      ]
+    },
+    "postgres": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/francisco/git/UTN/grupo8/robledo/The-Food-Store---Gestioncopy/The-Food-Store---Gestion"
+      ]
+    }
+  }
+}

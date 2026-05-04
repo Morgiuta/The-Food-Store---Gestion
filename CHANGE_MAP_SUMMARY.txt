@@ -1,0 +1,231 @@
+═══════════════════════════════════════════════════════════════════════════════
+                   🗺️  FOOD STORE — MAPA COMPLETO DE CHANGES
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 RESUMEN EJECUTIVO
+───────────────────────────────────────────────────────────────────────────────
+
+  Total de Changes:        24 (Sprints 1-7; Sprint 0 ya archivado)
+  Total de Tareas:         464
+  Total de Historias US:   75+
+  Horas Estimadas:         165-208 horas
+  Tiempo de Desarrollo:    3-4 semanas (con trabajo paralelo)
+                           5-6 semanas (secuencial)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📅 ROADMAP POR SPRINT
+───────────────────────────────────────────────────────────────────────────────
+
+✅ SPRINT 0: Infraestructura [1 change → COMPLETADO]
+   └─ sprint-0-infraestructura (112 tareas)
+      Archivado: 2026-04-28
+      
+▶️ SPRINT 1: Autenticación & Autorización [3 changes → 15-19 horas]
+   ├─ sprint-1-autenticacion (25 backend + 12 frontend)
+   │  • Registro, login, refresh token, logout, RBAC
+   │  • Rate limiting, token rotation, replay attack detection
+   │  
+   ├─ sprint-1-gestion-usuarios (18 backend + 14 frontend)
+   │  • CRUD usuarios, asignación de roles (admin only)
+   │  • Auditoría, protección last-admin
+   │  
+   └─ sprint-1-seguridad-avanzada (16 backend + 8 frontend)
+      • Rate limiting en endpoints sensibles
+      • Segregación de permisos por rol (STOCK ≠ PEDIDOS ≠ CLIENT)
+      • Error pages 401/403/404, input sanitization
+
+🔄 SPRINT 2: Catálogo de Productos [5 changes → 24-30 horas]
+   ├─ sprint-2-categorias-jerarquicas (22 backend + 16 frontend)
+   │  • Jerarquía de categorías (FK autoreferencial)
+   │  • CTE recursiva para árboles
+   │  • Validar no ciclos, no eliminar con productos
+   │  
+   ├─ sprint-2-ingredientes-alergenos (18 backend + 12 frontend)
+   │  • Ingredientes con flags de alérgenos
+   │  • Filtrado por alérgeno
+   │  
+   ├─ sprint-2-catalogo-productos (28 backend + 20 frontend)
+   │  • CRUD productos, M2M categorías/ingredientes
+   │  • Stock NUMERIC exacto, visibilidad pública
+   │  • Snapshots de precio (para pedidos)
+   │  
+   └─ sprint-2-busqueda-filtros (16 backend + 12 frontend)
+      • Full-text search, filtros avanzados
+      • Faceted search, autocomplete
+
+🛒 SPRINT 3: Direcciones & Carrito [3 changes → 15-19 horas]
+   ├─ sprint-3-direcciones-entrega (16 backend + 14 frontend)
+   │  • CRUD direcciones, múltiples por usuario
+   │  • Dirección predeterminada, ownership validation
+   │  • Snapshot en pedidos
+   │  
+   ├─ sprint-3-carrito-compras (0 backend + 18 frontend)
+   │  • Carrito client-side con Zustand
+   │  • Persistencia en localStorage
+   │  • Personalización (exclusión de ingredientes)
+   │  
+   └─ sprint-3-checkout-preview (12 backend + 16 frontend)
+      • Validación de pedido (stock, precios, direcciones)
+      • Cálculo de total + envío
+      • Resumen antes de pagar
+
+📦 SPRINT 4: Pedidos — Core [3 changes → 21-26 horas]
+   ├─ sprint-4-creacion-pedidos (26 backend + 12 frontend)
+   │  • Crear pedidos con Unit of Work (ATOMIC)
+   │  • Snapshots de precios y dirección
+   │  • Historial de estados (append-only)
+   │  
+   ├─ sprint-4-fsm-pedidos (22 backend + 10 frontend)
+   │  • FSM: PENDIENTE → CONFIRMADO → EN_PREPARACIÓN → EN_CAMINO → ENTREGADO/CANCELADO
+   │  • Transiciones válidas, stock management
+   │  • Cancelación con restauración de stock
+   │  
+   └─ sprint-4-admin-gestion-pedidos (14 backend + 14 frontend)
+      • Panel de Gestor Pedidos
+      • Listar, filtrar, cambiar estado, cancelar
+      • Gráficos por estado
+
+💳 SPRINT 5: Pagos MercadoPago [2 changes → 16-19 horas]
+   ├─ sprint-5-mercadopago-checkout (20 backend + 16 frontend)
+   │  • Integración MercadoPago (preferencias, webhook)
+   │  • Tokenización de tarjeta (no pasa por servidor)
+   │  • Estados: approved, rejected, pending
+   │  • Idempotency keys, replay detection
+   │  
+   └─ sprint-5-pagos-admin (16 backend + 12 frontend)
+      • Panel de admin: listado, filtrado de pagos
+      • Reembolsos (via API de MP)
+      • Auditoría de transacciones
+
+📊 SPRINT 6: Admin Dashboard & Métricas [2 changes → 11-14 horas]
+   ├─ sprint-6-admin-dashboard (14 backend + 16 frontend)
+   │  • KPIs: ventas, pedidos, usuarios, stock bajo
+   │  • Gráficos: ingresos, pedidos por estado, productos vendidos
+   │  • Caché de estadísticas
+   │  
+   └─ sprint-6-admin-configuracion (12 backend + 10 frontend)
+      • Config global: envío, MercadoPago, rate limiting
+      • Habilitar/deshabilitar formas de pago
+      • Caché de configuración
+
+🚀 SPRINT 7: Integraciones & Polish [5 changes → 25-31 horas]
+   ├─ sprint-7-notificaciones-email (14 backend + 6 frontend)
+   │  • Emails: registro, cambio de estado de pedido, reembolsos
+   │  • Cola asincrónica (celery), retry logic
+   │  
+   ├─ sprint-7-historial-cambios-auditar (16 backend + 10 frontend)
+   │  • Tabla de auditoría (usuario, acción, tabla, cambios)
+   │  • Middleware/decorator para registrar cambios
+   │  • Exportar changelog a CSV/JSON
+   │  
+   ├─ sprint-7-busqueda-avanzada-admin (12 backend + 10 frontend)
+   │  • FTS mejorada, filtros combinados
+   │  • Búsqueda global con autocomplete
+   │  
+   ├─ sprint-7-optimizacion-performance (12 backend + 12 frontend)
+   │  • Índices BD, caché, N+1 query prevention
+   │  • Code splitting, lazy loading, image optimization
+   │  
+   └─ sprint-7-testing-e2e (0 backend + 14 frontend)
+      • Tests E2E: registro → búsqueda → compra → pago
+      • Mocks de webhooks
+      • CI/CD pipeline (GitHub Actions)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔗 MATRIZ DE DEPENDENCIAS (Bloqueadores)
+───────────────────────────────────────────────────────────────────────────────
+
+                    Sprint 0 (archivado) ✅
+                           │
+                           ▼
+        ┌──────────────────────────────────────────┐
+        │                                          │
+        ▼                      ▼                   ▼
+    Sprint 1            Sprint 2              Sprint 3
+    (Auth)              (Catalog)             (Checkout)
+      │                    │                     │
+      ├─→ Sprint 1b    ├──→ Sprint 2b      └──→ Sprint 4
+      │   (Users)      │    (Ingredients)       (Orders)
+      │                │                          │
+      ├─→ Sprint 1c    └──→ Sprint 2c ─→ Sprint 3c
+      │   (Security)        (Products)    (Carrito)
+      │                         │            │
+      │                    Sprint 2d         │
+      │                    (Search)      Sprint 3d
+      │                                 (Checkout)
+      │                                     │
+      └─────────────────────┬─────────────┬─┘
+                            ▼             ▼
+                        Sprint 4: Orders (3 changes)
+                               │
+                               ▼
+                        Sprint 5: Payments (2 changes)
+                               │
+                               ▼
+                        Sprint 6: Admin (2 changes)
+                               │
+                               ▼
+                        Sprint 7: Polish (5 changes)
+
+REGLA DE ORO:
+  • Sprint 1 puede comenzar inmediatamente (depende solo de Sprint 0 ✅)
+  • Sprint 2 puede comenzar inmediatamente (depende solo de Sprint 0 ✅)
+  • Sprint 3 puede comenzar inmediatamente (depende solo de Sprint 0 ✅)
+  • Sprint 4 depende de Sprint 3 (checkout)
+  • Sprint 5 depende de Sprint 4 (órdenes creadas)
+  • Sprint 6 depende de Sprint 5 (pagos completos)
+  • Sprint 7 depende de Sprint 6 (todo lo anterior)
+
+⚡ PARALELIZACIÓN ÓPTIMA:
+  • Semana 1: Sprint 1 + Sprint 2 + Sprint 3 (en paralelo)
+  • Semana 2: Sprint 4 (cuando Sprint 3 termina)
+  • Semana 3: Sprint 5 + Sprint 6 (en paralelo, cuando Sprint 4 termina)
+  • Semana 4: Sprint 7 (polish final)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 MÉTRICA: CAMBIOS POR DOMINIO
+───────────────────────────────────────────────────────────────────────────────
+
+  Dominio                    Changes    Tareas    Horas
+  ──────────────────────────────────────────────────────
+  Autenticación              3          58        15-19
+  Catálogo de Productos      5          102       24-30
+  Carrito & Checkout         3          58        15-19
+  Pedidos & FSM             3          68        21-26
+  Pagos                      2          52        16-19
+  Admin & Métricas           2          42        11-14
+  Integraciones & Polish     5          84        25-31
+  ──────────────────────────────────────────────────────
+  TOTAL                      24         464       165-208 horas
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ PRÓXIMAS ACCIONES
+───────────────────────────────────────────────────────────────────────────────
+
+  1. Revisar este mapa con el equipo
+     ↳ Validar dependencias
+     ↳ Ajustar tamaños si es necesario
+     ↳ Identificar cambios que pueden hacerse en paralelo
+
+  2. Crear primer change de Sprint 1
+     ↳ /opsx:propose sprint-1-autenticacion
+
+  3. Ejecutar cambios en paralelo
+     ↳ Sprint 1 tiene 3 changes independientes
+     ↳ Después de Sprint 1, iniciar Sprint 2 y Sprint 3
+
+  4. Rastrear progreso
+     ↳ Usar la matriz de dependencias
+     ↳ Marcar changes como completados/archivados
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Documento generado: 2026-04-28
+Basado en: docs/CHANGES.md, docs/Historias_de_usuario.txt, docs/Descripcion.txt
+Análisis: OpenSpec Exploration (OPSX) Workflow
+
+═══════════════════════════════════════════════════════════════════════════════
