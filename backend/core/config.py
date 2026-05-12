@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Rate Limiting Configuration
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
+    RATE_LIMIT_REGISTER: str = "3/hour"
+    RATE_LIMIT_LOGIN: str = "5/15minutes"
+    RATE_LIMIT_PEDIDOS: str = "10/hour"
 
     # MercadoPago Configuration
     MP_ACCESS_TOKEN: Optional[str] = None

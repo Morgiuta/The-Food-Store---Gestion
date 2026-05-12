@@ -15,7 +15,7 @@ auth_service = AuthService()
 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-@limiter.limit("10/minute")
+@limiter.limit("3/hour")
 async def register(
     request: Request, body: RegisterRequest, session: DatabaseSession
 ):

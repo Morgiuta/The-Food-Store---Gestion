@@ -3,14 +3,14 @@ import { Button } from '@/shared/ui/button';
 
 export default function NotFoundPage() {
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">
-      <h1 className="text-6xl font-bold text-gray-300 mb-4">404</h1>
-      <h2 className="text-2xl font-semibold text-gray-700 mb-2">Página no encontrada</h2>
-      <p className="text-gray-500 mb-8 max-w-md">
-        La página que estás buscando no existe o fue movida.
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 px-4">
+      <h1 className="text-8xl font-bold text-amber-500">404</h1>
+      <h2 className="text-2xl font-semibold text-gray-800">Página no encontrada</h2>
+      <p className="text-gray-500 text-center max-w-md">
+        La página que estás buscando no existe o ha sido movida.
       </p>
       <Link to="/">
-        <Button variant="primary">Volver al inicio</Button>
+        <Button>Volver al inicio</Button>
       </Link>
     </div>
   );
