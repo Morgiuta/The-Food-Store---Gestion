@@ -23,6 +23,7 @@ export const ENDPOINTS = {
   },
   PRODUCTOS: {
     BASE: PRODUCTOS,
+    ADMIN: `${PRODUCTOS}/admin`,
     BY_ID: (id: number) => `${PRODUCTOS}/${id}`,
   },
   CATEGORIAS: {

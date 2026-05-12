@@ -13,7 +13,7 @@ class ProductoCreate(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=200)
     descripcion: str | None = None
     imagen_url: str | None = None
-    precio: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2)
+    precio: Decimal = Field(..., gt=0)
     stock_cantidad: int = Field(default=0, ge=0)
     disponible: bool = True
     categoria_ids: list[int] | None = None
@@ -24,7 +24,7 @@ class ProductoUpdate(BaseModel):
     nombre: str | None = Field(None, min_length=1, max_length=200)
     descripcion: str | None = None
     imagen_url: str | None = None
-    precio: Decimal | None = Field(None, gt=0, max_digits=10, decimal_places=2)
+    precio: Decimal | None = Field(None, gt=0)
     stock_cantidad: int | None = Field(None, ge=0)
     disponible: bool | None = None
     categoria_ids: list[int] | None = None
