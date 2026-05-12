@@ -62,8 +62,20 @@ export function useAuth() {
     },
   });
 
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const refreshToken = useAuthStore.getState().refreshToken;
+      if (refreshToken) {
+        await apiClient.post(ENDPOINTS.AUTH.LOGOUT, { refresh_token: refreshToken });
+      }
+    },
+    onSettled: () => {
+      storeLogout();
+    },
+  });
+
   const logout = () => {
-    storeLogout();
+    logoutMutation.mutate();
   };
 
   const hasRole = (role: Rol): boolean => {
@@ -88,6 +100,7 @@ export function useAuth() {
     isRegistering: registerMutation.isPending,
     registerError: registerMutation.error,
     logout,
+    isLoggingOut: logoutMutation.isPending,
     hasRole,
     hasAnyRole,
   };

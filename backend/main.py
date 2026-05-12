@@ -10,10 +10,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from backend.api.v1.routes import health
+from backend.auth.routes import auth as auth_routes
+from backend.auth.routes import roles as roles_routes
 from backend.core.config import get_settings
 from backend.core.database import engine, Base
+from backend.core.rate_limit import limiter
 from backend.middleware.error_handler import register_error_handlers
 from backend.middleware.logging import LoggingMiddleware
 
@@ -71,6 +75,12 @@ register_error_handlers(app)
 # Rate limit error handler
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
+# Rate limiter instance (shared across all routes)
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
 # ─── Routers ─────────────────────────────────────────────────────────────────
 
 app.include_router(health.router, prefix=settings.API_V1_STR, tags=["Health"])
+app.include_router(auth_routes.router, prefix=settings.API_V1_STR)
+app.include_router(roles_routes.router, prefix=settings.API_V1_STR)
