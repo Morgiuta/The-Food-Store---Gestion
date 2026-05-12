@@ -13,6 +13,7 @@ export const ENDPOINTS = {
     REGISTER: `${AUTH}/register`,
     ME: `${AUTH}/me`,
     REFRESH: `${AUTH}/refresh`,
+    LOGOUT: `${AUTH}/logout`,
   },
   USUARIOS: {
     BASE: USUARIOS,

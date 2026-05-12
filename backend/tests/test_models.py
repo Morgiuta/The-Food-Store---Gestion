@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 import pytest
+from sqlalchemy import select
 
 from backend.auth.models.direccion import DireccionEntrega
 from backend.auth.models.refresh_token import RefreshToken
@@ -139,7 +140,7 @@ class TestModelRelationships:
         session.add(ur)
         await session.flush()
 
-        await session.refresh(user)
+        await session.refresh(user, ["roles"])
         assert len(user.roles) == 1
         assert user.roles[0].rol_id == rol.id
         assert user.roles[0].usuario_id == user.id
@@ -161,7 +162,7 @@ class TestModelRelationships:
         session.add(ur)
         await session.flush()
 
-        await session.refresh(rol)
+        await session.refresh(rol, ["usuarios"])
         assert len(rol.usuarios) == 1
         assert rol.usuarios[0].usuario_id == user.id
 
@@ -184,9 +185,12 @@ class TestModelRelationships:
         session.add(direccion)
         await session.flush()
 
-        await session.refresh(user)
-        assert len(user.direcciones) == 1
-        assert user.direcciones[0].calle == "Calle Falsa"
+        from sqlalchemy.orm import selectinload
+        stmt = select(Usuario).where(Usuario.id == user.id).options(selectinload(Usuario.direcciones))
+        result = await session.execute(stmt)
+        user_with_dir = result.scalar_one()
+        assert len(user_with_dir.direcciones) == 1
+        assert user_with_dir.direcciones[0].calle == "Calle Falsa"
 
 
 class TestSoftDeleteModels:
