@@ -1,0 +1,61 @@
+import { lazy, Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { MainLayout } from '@/app/layouts/main-layout';
+import { AdminLayout } from '@/app/layouts/admin-layout';
+import { ProtectedRoute, RoleProtectedRoute } from '@/features/auth/components/protected-route';
+import { Spinner } from '@/shared/ui/spinner';
+
+const LoginPage = lazy(() => import('@/pages/auth/login-page'));
+const RegisterPage = lazy(() => import('@/pages/auth/register-page'));
+const NotFoundPage = lazy(() => import('@/pages/dashboard/not-found-page'));
+const ForbiddenPage = lazy(() => import('@/pages/dashboard/forbidden-page'));
+
+function SuspenseWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Spinner size="lg" /></div>}>
+      {children}
+    </Suspense>
+  );
+}
+
+export function AppRouter() {
+  return (
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Navigate to="/productos" replace />} />
+        <Route path="/login" element={<SuspenseWrapper><LoginPage /></SuspenseWrapper>} />
+        <Route path="/register" element={<SuspenseWrapper><RegisterPage /></SuspenseWrapper>} />
+        <Route path="/productos" element={<div className="p-8 text-center text-gray-500">Catálogo de productos — próximamente</div>} />
+        <Route path="/carrito" element={<div className="p-8 text-center text-gray-500">Carrito de compras — próximamente</div>} />
+        <Route path="/checkout" element={<div className="p-8 text-center text-gray-500">Checkout — próximamente</div>} />
+        <Route
+          path="/mis-pedidos"
+          element={
+            <ProtectedRoute>
+              <div className="p-8 text-center text-gray-500">Mis pedidos — próximamente</div>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/403" element={<SuspenseWrapper><ForbiddenPage /></SuspenseWrapper>} />
+        <Route path="*" element={<SuspenseWrapper><NotFoundPage /></SuspenseWrapper>} />
+      </Route>
+
+      <Route
+        path="/admin"
+        element={
+          <RoleProtectedRoute requiredRole="ADMIN">
+            <AdminLayout />
+          </RoleProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard" element={<div className="p-8 text-gray-500">Panel de administración — próximamente</div>} />
+        <Route path="usuarios" element={<div className="p-8 text-gray-500">Usuarios — próximamente</div>} />
+        <Route path="productos" element={<div className="p-8 text-gray-500">Productos — próximamente</div>} />
+        <Route path="categorias" element={<div className="p-8 text-gray-500">Categorías — próximamente</div>} />
+        <Route path="pedidos" element={<div className="p-8 text-gray-500">Pedidos — próximamente</div>} />
+        <Route path="ingredientes" element={<div className="p-8 text-gray-500">Ingredientes — próximamente</div>} />
+      </Route>
+    </Routes>
+  );
+}
