@@ -16,3 +16,21 @@ export function useCatalogo(params?: CatalogoParams) {
       apiClient.get(ENDPOINTS.PRODUCTOS.BASE, { params }).then((r) => r.data),
   });
 }
+
+export interface SearchParams {
+  q?: string;
+  skip?: number;
+  limit?: number;
+  precio_min?: number;
+  precio_max?: number;
+  categoria_id?: number;
+}
+
+export function useSearchProductos(params: SearchParams) {
+  return useQuery<Product[]>({
+    queryKey: ['productos', 'search', params],
+    queryFn: () =>
+      apiClient.get('/productos/search', { params }).then((r) => r.data),
+    enabled: !!params.q || !!params.categoria_id || !!params.precio_min,
+  });
+}

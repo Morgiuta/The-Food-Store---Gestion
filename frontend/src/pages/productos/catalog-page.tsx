@@ -1,16 +1,44 @@
-import { useState } from 'react';
-import { useCatalogo } from '@/features/productos/hooks/use-catalogo';
+import { useState, useEffect } from 'react';
+import { useCatalogo, useSearchProductos } from '@/features/productos/hooks/use-catalogo';
 import { useCategorias } from '@/features/categorias/hooks/use-categorias';
 import { Spinner } from '@/shared/ui/spinner';
+import { Input } from '@/shared/ui/input';
 import type { Categoria as CategoriaHook } from '@/features/categorias/hooks/use-categorias';
 
+function useDebounce<T>(value: T, delay: number = 300): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function CatalogPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [precioMin, setPrecioMin] = useState('');
+  const [precioMax, setPrecioMax] = useState('');
   const [categoriaId, setCategoriaId] = useState<number | undefined>(undefined);
   const [expandedProducto, setExpandedProducto] = useState<number | null>(null);
 
-  const { data: productos, isLoading, isError, error } = useCatalogo(
-    categoriaId ? { categoria_id: categoriaId } : undefined,
+  const debouncedQ = useDebounce(searchQuery, 400);
+  const isSearching = !!debouncedQ || !!precioMin || !!precioMax;
+
+  const searchResult = useSearchProductos({
+    q: debouncedQ || undefined,
+    precio_min: precioMin ? Number(precioMin) : undefined,
+    precio_max: precioMax ? Number(precioMax) : undefined,
+    categoria_id: isSearching ? categoriaId : undefined,
+  });
+
+  const catalogResult = useCatalogo(
+    !isSearching && categoriaId ? { categoria_id: categoriaId } : undefined,
   );
+
+  const { data: productos, isLoading, isError, error } = isSearching
+    ? searchResult
+    : catalogResult;
+
   const { data: categorias } = useCategorias();
 
   const toggleExpand = (id: number) => {
@@ -19,11 +47,59 @@ export default function CatalogPage() {
 
   const flatCategorias = categorias ? flattenTree(categorias) : [];
 
+  const hasAnyFilter = !!searchQuery || !!precioMin || !!precioMax || !!categoriaId;
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setPrecioMin('');
+    setPrecioMax('');
+    setCategoriaId(undefined);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-2">Catálogo de productos</h1>
       <p className="text-gray-500 mb-6">Explorá todos nuestros productos disponibles</p>
 
+      {/* Search + price filters */}
+      <div className="flex flex-wrap items-end gap-4 mb-6">
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Buscar productos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="w-32">
+          <Input
+            placeholder="Precio min"
+            type="number"
+            min={0}
+            value={precioMin}
+            onChange={(e) => setPrecioMin(e.target.value)}
+          />
+        </div>
+        <div className="w-32">
+          <Input
+            placeholder="Precio max"
+            type="number"
+            min={0}
+            value={precioMax}
+            onChange={(e) => setPrecioMax(e.target.value)}
+          />
+        </div>
+        {hasAnyFilter && (
+          <button
+            type="button"
+            onClick={handleClearFilters}
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </div>
+
+      {/* Category pills */}
       <div className="flex flex-wrap items-center gap-2 mb-8">
         <button
           type="button"
@@ -70,10 +146,18 @@ export default function CatalogPage() {
       {!isLoading && !isError && (!productos || productos.length === 0) && (
         <div className="text-center py-20">
           <p className="text-gray-500 text-lg mb-1">
-            {categoriaId ? 'No hay productos en esta categoría.' : 'No hay productos disponibles.'}
+            {isSearching
+              ? 'No se encontraron productos con esos filtros.'
+              : categoriaId
+              ? 'No hay productos en esta categoría.'
+              : 'No hay productos disponibles.'}
           </p>
           <p className="text-sm text-gray-400">
-            {categoriaId ? 'Elegí otra categoría para explorar.' : 'Volvé más tarde para ver novedades.'}
+            {isSearching
+              ? 'Probá con otros términos o ajustá los filtros.'
+              : categoriaId
+              ? 'Elegí otra categoría para explorar.'
+              : 'Volvé más tarde para ver novedades.'}
           </p>
         </div>
       )}
@@ -85,9 +169,7 @@ export default function CatalogPage() {
               key={prod.id}
               className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
             >
-              <div
-                className="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 text-sm"
-              >
+              <div className="aspect-video bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
                 {prod.imagen_url ? (
                   <img
                     src={prod.imagen_url}

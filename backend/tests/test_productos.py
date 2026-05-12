@@ -435,3 +435,133 @@ class TestProductos:
             headers=headers,
         )
         assert response.status_code == 403
+
+    # ── Search / Filter tests ──────────────────────────────────────────
+
+    async def test_search_by_name(
+        self, client: AsyncClient, session: AsyncSession
+    ):
+        headers = await auth_headers(client, session)
+        await client.post(
+            "/api/v1/productos",
+            json={"nombre": "Coca Cola", "precio": 1500.00, "stock_cantidad": 10},
+            headers=headers,
+        )
+        await client.post(
+            "/api/v1/productos",
+            json={"nombre": "Pan Frances", "precio": 500.00, "stock_cantidad": 20},
+            headers=headers,
+        )
+
+        response = await client.get("/api/v1/productos/search?q=cola")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 1
+        assert data["items"][0]["nombre"] == "Coca Cola"
+
+    async def test_search_no_results(
+        self, client: AsyncClient, session: AsyncSession
+    ):
+        headers = await auth_headers(client, session)
+        await client.post(
+            "/api/v1/productos",
+            json={"nombre": "Coca Cola", "precio": 1500.00, "stock_cantidad": 10},
+            headers=headers,
+        )
+
+        response = await client.get("/api/v1/productos/search?q=zzzznotfound")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 0
+        assert data["items"] == []
+
+    async def test_search_with_precio_min(
+        self, client: AsyncClient, session: AsyncSession
+    ):
+        headers = await auth_headers(client, session)
+        await client.post(
+            "/api/v1/productos",
+            json={"nombre": "Barato", "precio": 100.00, "stock_cantidad": 10},
+            headers=headers,
+        )
+        await client.post(
+            "/api/v1/productos",
+            json={"nombre": "Caro", "precio": 1000.00, "stock_cantidad": 10},
+            headers=headers,
+        )
+
+        response = await client.get("/api/v1/productos/search?precio_min=500")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 1
+        assert data["items"][0]["nombre"] == "Caro"
+
+    async def test_search_with_categoria_id(
+        self, client: AsyncClient, session: AsyncSession
+    ):
+        headers = await auth_headers(client, session)
+        cat_bebidas = await create_categoria(session, "Bebidas")
+        cat_comidas = await create_categoria(session, "Comidas")
+
+        await client.post(
+            "/api/v1/productos",
+            json={
+                "nombre": "Coca Cola",
+                "precio": 1500.00,
+                "stock_cantidad": 10,
+                "categoria_ids": [cat_bebidas],
+            },
+            headers=headers,
+        )
+        await client.post(
+            "/api/v1/productos",
+            json={
+                "nombre": "Milanesa",
+                "precio": 2000.00,
+                "stock_cantidad": 10,
+                "categoria_ids": [cat_comidas],
+            },
+            headers=headers,
+        )
+
+        response = await client.get(
+            f"/api/v1/productos/search?categoria_id={cat_bebidas}"
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 1
+        assert data["items"][0]["nombre"] == "Coca Cola"
+
+    async def test_search_without_query_returns_all_public(
+        self, client: AsyncClient, session: AsyncSession
+    ):
+        headers = await auth_headers(client, session)
+        await client.post(
+            "/api/v1/productos",
+            json={"nombre": "A", "precio": 100.00, "stock_cantidad": 10},
+            headers=headers,
+        )
+        await client.post(
+            "/api/v1/productos",
+            json={"nombre": "B", "precio": 200.00, "stock_cantidad": 10},
+            headers=headers,
+        )
+        await client.post(
+            "/api/v1/productos",
+            json={
+                "nombre": "No Visible",
+                "precio": 300.00,
+                "stock_cantidad": 0,
+                "disponible": False,
+            },
+            headers=headers,
+        )
+
+        response = await client.get("/api/v1/productos/search")
+        assert response.status_code == 200
+        data = response.json()
+        names = [i["nombre"] for i in data["items"]]
+        assert "A" in names
+        assert "B" in names
+        assert "No Visible" not in names
+        assert data["total"] == 2
