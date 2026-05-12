@@ -51,6 +51,57 @@ class ProductoService:
             "total": total,
         }
 
+    async def search(
+        self, session, query: str = "", skip: int = 0, limit: int = 100,
+        precio_min: Decimal | None = None, precio_max: Decimal | None = None,
+        categoria_id: int | None = None, solo_disponibles: bool = True,
+    ) -> dict:
+        stmt = select(Producto)
+
+        if solo_disponibles:
+            stmt = stmt.where(
+                Producto.disponible.is_(True),
+                Producto.eliminado_en.is_(None),
+            )
+
+        if query:
+            stmt = stmt.where(Producto.nombre.ilike(f"%{query}%"))
+
+        if precio_min is not None:
+            stmt = stmt.where(Producto.precio >= precio_min)
+
+        if precio_max is not None:
+            stmt = stmt.where(Producto.precio <= precio_max)
+
+        if categoria_id is not None:
+            stmt = stmt.join(
+                ProductoCategoria,
+                ProductoCategoria.producto_id == Producto.id,
+            ).where(ProductoCategoria.categoria_id == categoria_id)
+
+        stmt = stmt.order_by(Producto.nombre)
+
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total_result = await session.execute(count_stmt)
+        total = total_result.scalar_one()
+
+        paginated = (
+            stmt
+            .offset(skip)
+            .limit(limit)
+            .options(
+                selectinload(Producto.categorias).selectinload(ProductoCategoria.categoria),
+                selectinload(Producto.ingredientes).selectinload(ProductoIngrediente.ingrediente),
+            )
+        )
+        result = await session.execute(paginated)
+        items = result.scalars().all()
+
+        return {
+            "items": [self._producto_to_dict(p, include_relations=True) for p in items],
+            "total": total,
+        }
+
     async def get_by_id(self, session, producto_id: int) -> dict:
         stmt = (
             select(Producto)
