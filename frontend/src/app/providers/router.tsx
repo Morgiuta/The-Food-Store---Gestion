@@ -7,6 +7,8 @@ import { Spinner } from '@/shared/ui/spinner';
 
 const LoginPage = lazy(() => import('@/pages/auth/login-page'));
 const RegisterPage = lazy(() => import('@/pages/auth/register-page'));
+const ProfilePage = lazy(() => import('@/pages/auth/profile-page'));
+const AdminUsersPage = lazy(() => import('@/pages/admin/users-page'));
 const NotFoundPage = lazy(() => import('@/pages/dashboard/not-found-page'));
 const ForbiddenPage = lazy(() => import('@/pages/dashboard/forbidden-page'));
 
@@ -36,6 +38,14 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/perfil"
+          element={
+            <ProtectedRoute>
+              <SuspenseWrapper><ProfilePage /></SuspenseWrapper>
+            </ProtectedRoute>
+          }
+        />
         <Route path="/403" element={<SuspenseWrapper><ForbiddenPage /></SuspenseWrapper>} />
         <Route path="*" element={<SuspenseWrapper><NotFoundPage /></SuspenseWrapper>} />
       </Route>
@@ -50,7 +60,7 @@ export function AppRouter() {
       >
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<div className="p-8 text-gray-500">Panel de administración — próximamente</div>} />
-        <Route path="usuarios" element={<div className="p-8 text-gray-500">Usuarios — próximamente</div>} />
+        <Route path="usuarios" element={<SuspenseWrapper><AdminUsersPage /></SuspenseWrapper>} />
         <Route path="productos" element={<div className="p-8 text-gray-500">Productos — próximamente</div>} />
         <Route path="categorias" element={<div className="p-8 text-gray-500">Categorías — próximamente</div>} />
         <Route path="pedidos" element={<div className="p-8 text-gray-500">Pedidos — próximamente</div>} />

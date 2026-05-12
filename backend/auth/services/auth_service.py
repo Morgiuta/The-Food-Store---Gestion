@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from backend.auth.models.refresh_token import RefreshToken
 from backend.auth.models.usuario import Usuario
 from backend.core.config import get_settings
-from backend.core.exceptions import ConflictException, UnauthorizedException
+from backend.core.exceptions import ConflictException, ForbiddenException, UnauthorizedException
 from backend.core.security import create_access_token, get_password_hash, verify_password
 from backend.core.uow import UnitOfWork
 
@@ -18,6 +18,7 @@ def build_user_dict(user):
         "email": user.email,
         "telefono": user.telefono,
         "roles": [ur.rol.nombre for ur in user.roles],
+        "eliminado_en": user.eliminado_en.isoformat() if user.eliminado_en else None,
         "creado_en": user.creado_en.isoformat() if user.creado_en else None,
         "actualizado_en": user.actualizado_en.isoformat() if user.actualizado_en else None,
     }
@@ -72,6 +73,9 @@ class AuthService:
             user = await uow.usuarios.get_by_email(email)
             if not user or not verify_password(password, user.password_hash):
                 raise UnauthorizedException(detail="Email o contraseña incorrectos")
+
+            if user.eliminado_en is not None:
+                raise ForbiddenException(detail="Cuenta desactivada")
 
             user = await uow.usuarios.get_with_roles(user.id)
             roles_list = [ur.rol.nombre for ur in user.roles]
