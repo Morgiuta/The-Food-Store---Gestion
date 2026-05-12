@@ -1,0 +1,16 @@
+name: sprint-3-direcciones-entrega
+description: CRUD de direcciones de entrega, predeterminada por usuario
+status: ready
+artifacts:
+  - id: proposal
+    status: done
+    path: proposal.md
+  - id: design
+    status: done
+    path: design.md
+  - id: tasks
+    status: done
+    path: tasks.md
+applyRequires:
+  - tasks
+created: 2026-05-12T14:52:00Z

@@ -6,6 +6,7 @@ const INGREDIENTES = '/ingredientes';
 const PEDIDOS = '/pedidos';
 const PAGOS = '/pagos';
 const ADMIN = '/admin';
+const DIRECCIONES = '/direcciones';
 
 const PERFIL = '/perfil';
 
@@ -38,6 +39,8 @@ export const ENDPOINTS = {
     BASE: PEDIDOS,
     BY_ID: (id: number) => `${PEDIDOS}/${id}`,
     HISTORY: (id: number) => `${PEDIDOS}/${id}/historial`,
+    VALIDAR: `${PEDIDOS}/validar`,
+    CALCULAR_TOTAL: `${PEDIDOS}/calcular-total`,
   },
   PAGOS: {
     CREATE: `${PAGOS}/create`,
@@ -54,5 +57,10 @@ export const ENDPOINTS = {
   PERFIL: {
     BASE: PERFIL,
     PASSWORD: `${PERFIL}/password`,
+  },
+  DIRECCIONES: {
+    BASE: DIRECCIONES,
+    BY_ID: (id: number) => `${DIRECCIONES}/${id}`,
+    SET_DEFAULT: (id: number) => `${DIRECCIONES}/${id}/predeterminada`,
   },
 } as const;

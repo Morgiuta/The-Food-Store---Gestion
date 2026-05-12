@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useCatalogo, useSearchProductos } from '@/features/productos/hooks/use-catalogo';
 import { useCategorias } from '@/features/categorias/hooks/use-categorias';
+import { useCart } from '@/features/carrito/hooks/use-cart';
+import { ProductPersonalizationModal } from '@/features/carrito/components/product-personalization-modal';
 import { Spinner } from '@/shared/ui/spinner';
 import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
 import type { Categoria as CategoriaHook } from '@/features/categorias/hooks/use-categorias';
+import type { Product } from '@/shared/types';
 
 function useDebounce<T>(value: T, delay: number = 300): T {
   const [debounced, setDebounced] = useState(value);
@@ -20,6 +24,9 @@ export default function CatalogPage() {
   const [precioMax, setPrecioMax] = useState('');
   const [categoriaId, setCategoriaId] = useState<number | undefined>(undefined);
   const [expandedProducto, setExpandedProducto] = useState<number | null>(null);
+  const [modalProducto, setModalProducto] = useState<Product | null>(null);
+
+  const { addItem } = useCart();
 
   const debouncedQ = useDebounce(searchQuery, 400);
   const isSearching = !!debouncedQ || !!precioMin || !!precioMax;
@@ -220,13 +227,30 @@ export default function CatalogPage() {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => toggleExpand(prod.id)}
-                  className="text-sm text-amber-600 hover:text-amber-700 font-medium"
-                >
-                  {expandedProducto === prod.id ? 'Ver menos' : 'Ver detalles'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpand(prod.id)}
+                    className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                  >
+                    {expandedProducto === prod.id ? 'Ver menos' : 'Ver detalles'}
+                  </button>
+                  {prod.disponible && prod.stock_cantidad > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (prod.ingredientes && prod.ingredientes.length > 0) {
+                          setModalProducto(prod);
+                        } else {
+                          // Agregar directamente si no tiene ingredientes
+                          addItem(prod, 1, undefined);
+                        }
+                      }}
+                    >
+                      Agregar
+                    </Button>
+                  )}
+                </div>
 
                 {expandedProducto === prod.id && (
                   <div className="pt-2 border-t border-gray-100 space-y-2">
@@ -259,6 +283,19 @@ export default function CatalogPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Modal de personalización */}
+      {modalProducto && (
+        <ProductPersonalizationModal
+          isOpen={modalProducto !== null}
+          onClose={() => setModalProducto(null)}
+          producto={modalProducto}
+          onConfirm={(ingredientesExcluidos) => {
+            addItem(modalProducto, 1, { ingredientesExcluidos });
+            setModalProducto(null);
+          }}
+        />
       )}
     </div>
   );

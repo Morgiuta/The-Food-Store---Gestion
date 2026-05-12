@@ -1,0 +1,16 @@
+name: sprint-3-checkout-preview
+description: Vista previa de pedido antes de pagar, calcular total con snapshots, validación de stock
+status: ready
+artifacts:
+  - id: proposal
+    status: done
+    path: proposal.md
+  - id: design
+    status: done
+    path: design.md
+  - id: tasks
+    status: done
+    path: tasks.md
+applyRequires:
+  - tasks
+created: 2026-05-12T15:06:00Z

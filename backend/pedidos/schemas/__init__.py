@@ -7,6 +7,12 @@ from backend.pedidos.schemas.pedido import (
     DetallePedidoRead,
     HistorialEstadoRead,
 )
+from backend.pedidos.schemas.checkout import (
+    ValidarStockRequest,
+    ValidarStockResponse,
+    CalcularTotalRequest,
+    CalcularTotalResponse,
+)
 
 __all__ = [
     "CrearPedidoRequest",
@@ -16,4 +22,8 @@ __all__ = [
     "PedidoDetail",
     "DetallePedidoRead",
     "HistorialEstadoRead",
+    "ValidarStockRequest",
+    "ValidarStockResponse",
+    "CalcularTotalRequest",
+    "CalcularTotalResponse",
 ]

@@ -13,6 +13,9 @@ const AdminProductosPage = lazy(() => import('@/pages/admin/productos-page'));
 const CategoriasPage = lazy(() => import('@/pages/admin/categorias-page'));
 const IngredientesPage = lazy(() => import('@/pages/admin/ingredientes-page'));
 const CatalogPage = lazy(() => import('@/pages/productos/catalog-page'));
+const ShoppingCartPage = lazy(() => import('@/pages/carrito/shopping-cart-page'));
+const CheckoutPage = lazy(() => import('@/pages/checkout/checkout-page'));
+const DireccionesPage = lazy(() => import('@/features/direcciones/pages/direcciones-page'));
 const NotFoundPage = lazy(() => import('@/pages/dashboard/not-found-page'));
 const ForbiddenPage = lazy(() => import('@/pages/dashboard/forbidden-page'));
 const UnauthorizedPage = lazy(() => import('@/pages/dashboard/unauthorized-page'));
@@ -33,8 +36,12 @@ export function AppRouter() {
         <Route path="/login" element={<SuspenseWrapper><LoginPage /></SuspenseWrapper>} />
         <Route path="/register" element={<SuspenseWrapper><RegisterPage /></SuspenseWrapper>} />
         <Route path="/productos" element={<SuspenseWrapper><CatalogPage /></SuspenseWrapper>} />
-        <Route path="/carrito" element={<div className="p-8 text-center text-gray-500">Carrito de compras — próximamente</div>} />
-        <Route path="/checkout" element={<div className="p-8 text-center text-gray-500">Checkout — próximamente</div>} />
+        <Route path="/carrito" element={<SuspenseWrapper><ShoppingCartPage /></SuspenseWrapper>} />
+        <Route path="/checkout" element={
+          <ProtectedRoute>
+            <SuspenseWrapper><CheckoutPage /></SuspenseWrapper>
+          </ProtectedRoute>
+        } />
         <Route
           path="/mis-pedidos"
           element={
@@ -48,6 +55,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <SuspenseWrapper><ProfilePage /></SuspenseWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mis-direcciones"
+          element={
+            <ProtectedRoute>
+              <SuspenseWrapper><DireccionesPage /></SuspenseWrapper>
             </ProtectedRoute>
           }
         />

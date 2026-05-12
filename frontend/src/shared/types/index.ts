@@ -41,7 +41,9 @@ export interface Product {
 export interface CartItem {
   producto: Product;
   cantidad: number;
-  personalizacion?: string;
+  personalizacion?: {
+    ingredientesExcluidos: number[];
+  };
 }
 
 export interface Address {

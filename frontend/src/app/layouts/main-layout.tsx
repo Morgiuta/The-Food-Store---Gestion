@@ -12,6 +12,7 @@ const navItems: Record<string, NavItem[]> = {
     { label: 'Catálogo', path: '/productos' },
     { label: 'Mi Carrito', path: '/carrito' },
     { label: 'Mis Pedidos', path: '/mis-pedidos' },
+    { label: 'Mis Direcciones', path: '/mis-direcciones' },
     { label: 'Mi Perfil', path: '/perfil' },
   ],
   stock: [

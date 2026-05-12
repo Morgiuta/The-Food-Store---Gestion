@@ -20,6 +20,8 @@ from backend.ingredientes.routes import ingredientes as ingredientes_routes
 from backend.productos.routes import productos as productos_routes
 from backend.usuarios.routes import admin_usuarios
 from backend.usuarios.routes import perfil
+from backend.direcciones.routes import direcciones as direcciones_routes
+from backend.pedidos.routes import checkout as checkout_routes
 from backend.core.config import get_settings
 from backend.core.database import engine, Base
 from backend.core.rate_limit import limiter
@@ -94,3 +96,5 @@ app.include_router(ingredientes_routes.router, prefix=settings.API_V1_STR)
 app.include_router(productos_routes, prefix=settings.API_V1_STR)
 app.include_router(admin_usuarios.router, prefix=settings.API_V1_STR)
 app.include_router(perfil.router, prefix=settings.API_V1_STR)
+app.include_router(direcciones_routes.router, prefix=settings.API_V1_STR)
+app.include_router(checkout_routes.router, prefix=settings.API_V1_STR)
