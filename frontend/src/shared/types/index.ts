@@ -31,7 +31,7 @@ export interface Product {
   nombre: string;
   descripcion: string;
   precio: number;
-  stock: number;
+  stock_cantidad: number;
   disponible: boolean;
   categorias: Categoria[];
   ingredientes: Ingrediente[];

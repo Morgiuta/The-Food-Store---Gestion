@@ -9,8 +9,10 @@ const LoginPage = lazy(() => import('@/pages/auth/login-page'));
 const RegisterPage = lazy(() => import('@/pages/auth/register-page'));
 const ProfilePage = lazy(() => import('@/pages/auth/profile-page'));
 const AdminUsersPage = lazy(() => import('@/pages/admin/users-page'));
+const AdminProductosPage = lazy(() => import('@/pages/admin/productos-page'));
 const CategoriasPage = lazy(() => import('@/pages/admin/categorias-page'));
 const IngredientesPage = lazy(() => import('@/pages/admin/ingredientes-page'));
+const CatalogPage = lazy(() => import('@/pages/productos/catalog-page'));
 const NotFoundPage = lazy(() => import('@/pages/dashboard/not-found-page'));
 const ForbiddenPage = lazy(() => import('@/pages/dashboard/forbidden-page'));
 const UnauthorizedPage = lazy(() => import('@/pages/dashboard/unauthorized-page'));
@@ -30,7 +32,7 @@ export function AppRouter() {
         <Route path="/" element={<Navigate to="/productos" replace />} />
         <Route path="/login" element={<SuspenseWrapper><LoginPage /></SuspenseWrapper>} />
         <Route path="/register" element={<SuspenseWrapper><RegisterPage /></SuspenseWrapper>} />
-        <Route path="/productos" element={<div className="p-8 text-center text-gray-500">Catálogo de productos — próximamente</div>} />
+        <Route path="/productos" element={<SuspenseWrapper><CatalogPage /></SuspenseWrapper>} />
         <Route path="/carrito" element={<div className="p-8 text-center text-gray-500">Carrito de compras — próximamente</div>} />
         <Route path="/checkout" element={<div className="p-8 text-center text-gray-500">Checkout — próximamente</div>} />
         <Route
@@ -65,7 +67,7 @@ export function AppRouter() {
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<div className="p-8 text-gray-500">Panel de administración — próximamente</div>} />
         <Route path="usuarios" element={<SuspenseWrapper><AdminUsersPage /></SuspenseWrapper>} />
-        <Route path="productos" element={<div className="p-8 text-gray-500">Productos — próximamente</div>} />
+        <Route path="productos" element={<SuspenseWrapper><AdminProductosPage /></SuspenseWrapper>} />
         <Route path="categorias" element={<SuspenseWrapper><CategoriasPage /></SuspenseWrapper>} />
         <Route path="pedidos" element={<div className="p-8 text-gray-500">Pedidos — próximamente</div>} />
         <Route path="ingredientes" element={<SuspenseWrapper><IngredientesPage /></SuspenseWrapper>} />
