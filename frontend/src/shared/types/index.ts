@@ -6,7 +6,9 @@ export interface User {
   email: string;
   telefono: string;
   roles: Rol[];
+  activo: boolean;
   creado_en: string;
+  actualizado_en: string;
 }
 
 export interface Categoria {

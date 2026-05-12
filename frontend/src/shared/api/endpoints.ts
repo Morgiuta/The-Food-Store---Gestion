@@ -7,6 +7,8 @@ const PEDIDOS = '/pedidos';
 const PAGOS = '/pagos';
 const ADMIN = '/admin';
 
+const PERFIL = '/perfil';
+
 export const ENDPOINTS = {
   AUTH: {
     LOGIN: `${AUTH}/login`,
@@ -44,5 +46,12 @@ export const ENDPOINTS = {
   ADMIN: {
     DASHBOARD: `${ADMIN}/dashboard`,
     METRICS: `${ADMIN}/metricas`,
+    USUARIOS: `${ADMIN}/usuarios`,
+    USUARIO_BY_ID: (id: number) => `${ADMIN}/usuarios/${id}`,
+    USUARIO_ESTADO: (id: number) => `${ADMIN}/usuarios/${id}/estado`,
+  },
+  PERFIL: {
+    BASE: PERFIL,
+    PASSWORD: `${PERFIL}/password`,
   },
 } as const;
