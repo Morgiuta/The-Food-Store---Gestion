@@ -11,6 +11,7 @@ const ProfilePage = lazy(() => import('@/pages/auth/profile-page'));
 const AdminUsersPage = lazy(() => import('@/pages/admin/users-page'));
 const NotFoundPage = lazy(() => import('@/pages/dashboard/not-found-page'));
 const ForbiddenPage = lazy(() => import('@/pages/dashboard/forbidden-page'));
+const UnauthorizedPage = lazy(() => import('@/pages/dashboard/unauthorized-page'));
 
 function SuspenseWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -46,6 +47,7 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route path="/401" element={<SuspenseWrapper><UnauthorizedPage /></SuspenseWrapper>} />
         <Route path="/403" element={<SuspenseWrapper><ForbiddenPage /></SuspenseWrapper>} />
         <Route path="*" element={<SuspenseWrapper><NotFoundPage /></SuspenseWrapper>} />
       </Route>

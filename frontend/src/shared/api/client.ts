@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/app/store/auth-store';
+import { useUIStore } from '@/app/store/ui-store';
 import { API_PREFIX } from '@/shared/constants';
 
 interface FailedRequest {
@@ -43,6 +44,11 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      useUIStore.getState().addNotification({
+        type: 'error',
+        message: 'Tu sesión ha expirado. Inicia sesión nuevamente.',
+      });
+
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -90,6 +96,13 @@ apiClient.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    }
+
+    if (error.response?.status === 403) {
+      useUIStore.getState().addNotification({
+        type: 'error',
+        message: 'No tienes permisos para realizar esta acción.',
+      });
     }
 
     return Promise.reject(error);
