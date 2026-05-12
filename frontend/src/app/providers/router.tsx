@@ -10,6 +10,7 @@ const RegisterPage = lazy(() => import('@/pages/auth/register-page'));
 const ProfilePage = lazy(() => import('@/pages/auth/profile-page'));
 const AdminUsersPage = lazy(() => import('@/pages/admin/users-page'));
 const CategoriasPage = lazy(() => import('@/pages/admin/categorias-page'));
+const IngredientesPage = lazy(() => import('@/pages/admin/ingredientes-page'));
 const NotFoundPage = lazy(() => import('@/pages/dashboard/not-found-page'));
 const ForbiddenPage = lazy(() => import('@/pages/dashboard/forbidden-page'));
 const UnauthorizedPage = lazy(() => import('@/pages/dashboard/unauthorized-page'));
@@ -67,7 +68,7 @@ export function AppRouter() {
         <Route path="productos" element={<div className="p-8 text-gray-500">Productos — próximamente</div>} />
         <Route path="categorias" element={<SuspenseWrapper><CategoriasPage /></SuspenseWrapper>} />
         <Route path="pedidos" element={<div className="p-8 text-gray-500">Pedidos — próximamente</div>} />
-        <Route path="ingredientes" element={<div className="p-8 text-gray-500">Ingredientes — próximamente</div>} />
+        <Route path="ingredientes" element={<SuspenseWrapper><IngredientesPage /></SuspenseWrapper>} />
       </Route>
     </Routes>
   );
