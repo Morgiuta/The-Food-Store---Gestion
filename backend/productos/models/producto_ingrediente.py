@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from backend.core.database import Base
@@ -14,6 +14,7 @@ class ProductoIngrediente(Base):
     id = Column(Integer, primary_key=True, index=True)
     producto_id = Column(Integer, ForeignKey("productos.id"), nullable=False)
     ingrediente_id = Column(Integer, ForeignKey("ingredientes.id"), nullable=False)
+    es_removible = Column(Boolean, default=True)
     creado_en = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), nullable=False)
     actualizado_en = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 

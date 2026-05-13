@@ -47,6 +47,9 @@ class BaseRepository(Generic[ModelType]):
             The entity instance or None if not found
         """
         stmt = select(self._model_class).where(self._model_class.id == id)  # type: ignore[attr-defined]
+        # Auto-filter soft-deleted records if the model supports it
+        if hasattr(self._model_class, 'eliminado_en'):
+            stmt = stmt.where(self._model_class.eliminado_en.is_(None))
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -72,6 +75,8 @@ class BaseRepository(Generic[ModelType]):
             List of entity instances
         """
         stmt = select(self._model_class)
+        if hasattr(self._model_class, 'eliminado_en'):
+            stmt = stmt.where(self._model_class.eliminado_en.is_(None))
 
         if filters:
             for attr, value in filters.items():

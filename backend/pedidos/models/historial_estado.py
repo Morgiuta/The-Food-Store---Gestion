@@ -17,7 +17,6 @@ class HistorialEstadoPedido(Base):
     observacion = Column(Text, nullable=True)
     timestamp = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), nullable=False)
     creado_en = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), nullable=False)
-    actualizado_en = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 
     pedido = relationship("Pedido", back_populates="historial_estados")
     estado_anterior = relationship("EstadoPedido", foreign_keys=[estado_anterior_id])

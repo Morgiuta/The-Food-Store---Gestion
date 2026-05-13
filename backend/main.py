@@ -14,6 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from backend.api.v1.routes import health
 from backend.auth.routes import auth as auth_routes
+from backend.auth.routes import me as auth_me_routes
 from backend.auth.routes import roles as roles_routes
 from backend.categorias.routes import categorias as categorias_routes
 from backend.ingredientes.routes import ingredientes as ingredientes_routes
@@ -98,6 +99,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 app.include_router(health.router, prefix=settings.API_V1_STR, tags=["Health"])
 app.include_router(auth_routes.router, prefix=settings.API_V1_STR)
+app.include_router(auth_me_routes.router, prefix=settings.API_V1_STR)
 app.include_router(roles_routes.router, prefix=settings.API_V1_STR)
 app.include_router(categorias_routes.router, prefix=settings.API_V1_STR)
 app.include_router(ingredientes_routes.router, prefix=settings.API_V1_STR)

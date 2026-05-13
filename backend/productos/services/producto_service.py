@@ -192,6 +192,80 @@ class ProductoService:
             raise NotFoundException("Producto no encontrado")
         await repo.soft_delete(producto_id)
 
+    async def toggle_disponibilidad(self, uow, producto_id: int) -> Producto:
+        from sqlalchemy import select
+        stmt = select(Producto).where(Producto.id == producto_id)
+        result = await uow._session.execute(stmt)
+        producto = result.scalar_one_or_none()
+        if not producto:
+            raise NotFoundException("Producto no encontrado")
+        producto.disponible = not producto.disponible
+        uow._session.add(producto)
+        await uow._session.flush()
+        await uow._session.refresh(producto)
+        return producto
+
+    async def list_ingredientes(self, uow, producto_id: int) -> list:
+        from sqlalchemy import select
+        from sqlalchemy.orm import selectinload
+        stmt = (
+            select(Producto)
+            .where(Producto.id == producto_id)
+            .options(selectinload(Producto.ingredientes).selectinload(ProductoIngrediente.ingrediente))
+        )
+        result = await uow._session.execute(stmt)
+        producto = result.scalar_one_or_none()
+        if not producto:
+            raise NotFoundException("Producto no encontrado")
+        return [
+            {
+                "id": pi.ingrediente.id,
+                "nombre": pi.ingrediente.nombre,
+                "descripcion": pi.ingrediente.descripcion,
+                "es_alergeno": pi.ingrediente.es_alergeno,
+                "es_removible": pi.es_removible,
+            }
+            for pi in (producto.ingredientes or [])
+        ]
+
+    async def add_ingrediente(self, uow, producto_id: int, ingrediente_id: int, es_removible: bool = True) -> dict:
+        from sqlalchemy import select
+        # Verify product exists
+        stmt = select(Producto).where(Producto.id == producto_id)
+        result = await uow._session.execute(stmt)
+        if not result.scalar_one_or_none():
+            raise NotFoundException("Producto no encontrado")
+        # Verify ingredient exists
+        ing_stmt = select(Ingrediente).where(Ingrediente.id == ingrediente_id)
+        ing_result = await uow._session.execute(ing_stmt)
+        ingrediente = ing_result.scalar_one_or_none()
+        if not ingrediente:
+            raise NotFoundException("Ingrediente no encontrado")
+        pi = ProductoIngrediente(producto_id=producto_id, ingrediente_id=ingrediente_id, es_removible=es_removible)
+        uow._session.add(pi)
+        await uow._session.flush()
+        await uow._session.refresh(pi)
+        return {
+            "id": pi.id,
+            "producto_id": pi.producto_id,
+            "ingrediente_id": pi.ingrediente_id,
+            "es_removible": pi.es_removible,
+            "nombre": ingrediente.nombre,
+        }
+
+    async def remove_ingrediente(self, uow, producto_id: int, ingrediente_id: int) -> None:
+        from sqlalchemy import select, delete as sa_delete
+        stmt = select(ProductoIngrediente).where(
+            ProductoIngrediente.producto_id == producto_id,
+            ProductoIngrediente.ingrediente_id == ingrediente_id,
+        )
+        result = await uow._session.execute(stmt)
+        pi = result.scalar_one_or_none()
+        if not pi:
+            raise NotFoundException("Relacion producto-ingrediente no encontrada")
+        await uow._session.delete(pi)
+        await uow._session.flush()
+
     def _producto_to_dict(self, producto: Producto, include_relations: bool = False) -> dict:
         result = {
             "id": producto.id,

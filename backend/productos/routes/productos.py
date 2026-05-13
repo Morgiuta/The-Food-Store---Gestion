@@ -2,7 +2,8 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Query
 
-from backend.core.dependencies import DatabaseSession, get_current_user, require_role
+from backend.core.dependencies import DatabaseSession, RoleRequired, get_current_user, require_role
+from backend.core.uow import UnitOfWork
 from backend.productos.schemas.producto import ProductoCreate, ProductoUpdate
 from backend.productos.services.producto_service import ProductoService
 
@@ -78,3 +79,59 @@ async def delete(
     current_user: dict = Depends(require_stock_or_admin),
 ):
     await service.delete(session, producto_id)
+
+
+@router.patch("/{producto_id}/disponibilidad")
+async def toggle_disponibilidad(
+    producto_id: int,
+    session: DatabaseSession,
+    current_user: dict = Depends(RoleRequired(["ADMIN", "STOCK"])),
+):
+    """Toggle product disponibilidad (ADMIN/STOCK only)."""
+    from backend.productos.services.producto_service import ProductoService
+    service = ProductoService()
+    async with UnitOfWork(session) as uow:
+        producto = await service.toggle_disponibilidad(uow, producto_id)
+    return {"id": producto.id, "disponible": producto.disponible}
+
+
+@router.get("/{producto_id}/ingredientes")
+async def list_ingredientes_producto(
+    producto_id: int,
+    session: DatabaseSession,
+):
+    """List ingredients of a product (public)."""
+    from backend.productos.services.producto_service import ProductoService
+    service = ProductoService()
+    async with UnitOfWork(session) as uow:
+        ingredientes = await service.list_ingredientes(uow, producto_id)
+    return ingredientes
+
+
+@router.post("/{producto_id}/ingredientes", status_code=201)
+async def add_ingrediente_producto(
+    producto_id: int,
+    body: dict,
+    session: DatabaseSession,
+    current_user: dict = Depends(RoleRequired(["ADMIN", "STOCK"])),
+):
+    """Add ingredient to product (ADMIN/STOCK only)."""
+    from backend.productos.services.producto_service import ProductoService
+    service = ProductoService()
+    async with UnitOfWork(session) as uow:
+        result = await service.add_ingrediente(uow, producto_id, body["ingrediente_id"], body.get("es_removible", True))
+    return result
+
+
+@router.delete("/{producto_id}/ingredientes/{ingrediente_id}", status_code=204)
+async def remove_ingrediente_producto(
+    producto_id: int,
+    ingrediente_id: int,
+    session: DatabaseSession,
+    current_user: dict = Depends(RoleRequired(["ADMIN", "STOCK"])),
+):
+    """Remove ingredient from product (ADMIN/STOCK only)."""
+    from backend.productos.services.producto_service import ProductoService
+    service = ProductoService()
+    async with UnitOfWork(session) as uow:
+        await service.remove_ingrediente(uow, producto_id, ingrediente_id)
