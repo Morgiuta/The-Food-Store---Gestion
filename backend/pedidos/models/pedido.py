@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, Numeric, Text
 from sqlalchemy.orm import relationship
 
 from backend.core.database import Base
@@ -8,6 +8,11 @@ from backend.core.database import Base
 
 class Pedido(Base):
     __tablename__ = "pedidos"
+
+    __table_args__ = (
+        Index("ix_pedidos_usuario_creado", "usuario_id", "creado_en"),
+        Index("ix_pedidos_estado_creado", "estado_id", "creado_en"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
