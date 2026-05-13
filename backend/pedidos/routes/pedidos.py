@@ -207,12 +207,13 @@ async def listar_pedidos_admin(
     estado_id: int | None = Query(None),
     fecha_desde: datetime | None = Query(None),
     fecha_hasta: datetime | None = Query(None),
+    search: str | None = Query(None),
 ):
     """List all orders (ADMIN/PEDIDOS only) with optional filters."""
     skip = (page - 1) * size
     async with UnitOfWork(session) as uow:
         pedidos, total = await service.listar_admin(
-            uow, skip, size, estado_id, fecha_desde, fecha_hasta
+            uow, skip, size, estado_id, fecha_desde, fecha_hasta, search
         )
 
     items = [pedido_to_read(p) for p in pedidos]
