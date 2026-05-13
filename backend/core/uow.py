@@ -14,6 +14,8 @@ from backend.auth.repositories.rol import RolRepository
 from backend.auth.repositories.usuario_rol import UsuarioRolRepository
 from backend.categorias.repositories.categoria import CategoriaRepository
 from backend.ingredientes.repositories.ingrediente import IngredienteRepository
+from backend.admin.repositories.configuracion import ConfiguracionRepository
+from backend.pagos.repositories.forma_pago import FormaPagoRepository
 from backend.pagos.repositories.pago import PagoRepository
 from backend.pedidos.repositories.detalle_pedido import DetallePedidoRepository
 from backend.pedidos.repositories.historial_estado import HistorialEstadoPedidoRepository
@@ -71,6 +73,12 @@ class UnitOfWork:
         )
         self.historial_estados: HistorialEstadoPedidoRepository = self._get_or_create_repo(
             "historial_estados", HistorialEstadoPedidoRepository
+        )
+        self.configuraciones: ConfiguracionRepository = self._get_or_create_repo(
+            "configuraciones", ConfiguracionRepository
+        )
+        self.formas_pago: FormaPagoRepository = self._get_or_create_repo(
+            "formas_pago", FormaPagoRepository
         )
         self.pagos: PagoRepository = self._get_or_create_repo("pagos", PagoRepository)
 
