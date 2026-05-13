@@ -1,6 +1,8 @@
 """
 Router for order CRUD operations (client and admin).
 """
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, Query
 
 from backend.core.dependencies import DatabaseSession, RoleRequired, get_current_user
@@ -203,12 +205,14 @@ async def listar_pedidos_admin(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
     estado_id: int | None = Query(None),
+    fecha_desde: datetime | None = Query(None),
+    fecha_hasta: datetime | None = Query(None),
 ):
     """List all orders (ADMIN/PEDIDOS only) with optional filters."""
     skip = (page - 1) * size
     async with UnitOfWork(session) as uow:
         pedidos, total = await service.listar_admin(
-            uow, skip, size, estado_id
+            uow, skip, size, estado_id, fecha_desde, fecha_hasta
         )
 
     items = [pedido_to_read(p) for p in pedidos]
