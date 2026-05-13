@@ -215,10 +215,16 @@ class PedidoService:
         estado_id: int | None = None,
         fecha_desde: datetime | None = None,
         fecha_hasta: datetime | None = None,
+        search: str | None = None,
     ) -> tuple[list[Pedido], int]:
         """List all orders for admin/pedidos with optional filters."""
         base_query = select(Pedido).where(Pedido.eliminado_en.is_(None))
         count_query = select(func.count()).select_from(Pedido).where(Pedido.eliminado_en.is_(None))
+
+        if search and search.isdigit():
+            pedido_id = int(search)
+            base_query = base_query.where(Pedido.id == pedido_id)
+            count_query = count_query.where(Pedido.id == pedido_id)
 
         if estado_id is not None:
             base_query = base_query.where(Pedido.estado_id == estado_id)
