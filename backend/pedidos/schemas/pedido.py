@@ -23,6 +23,10 @@ class AvanzarEstadoRequest(BaseModel):
     motivo: str | None = Field(None, max_length=500)
 
 
+class CancelarPedidoRequest(BaseModel):
+    motivo: str = Field(..., min_length=5, max_length=500)
+
+
 class DetallePedidoRead(BaseModel):
     id: int
     producto_id: int | None
