@@ -48,6 +48,13 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
     API_URL: str = "http://localhost:8000"
 
+    # Email Configuration
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = "noreply@foodstore.com"
+
     # Logging Configuration
     LOG_LEVEL: str = "INFO"
 
