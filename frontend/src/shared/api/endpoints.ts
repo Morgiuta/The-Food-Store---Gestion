@@ -46,8 +46,8 @@ export const ENDPOINTS = {
     ADMIN_ALL: `${PEDIDOS}/admin/all`,
   },
   PAGOS: {
-    CREATE: `${PAGOS}/create`,
-    CALLBACK: `${PAGOS}/callback`,
+    CREATE: `${PAGOS}/crear`,
+    BY_PEDIDO: (pedidoId: number) => `${PAGOS}/${pedidoId}`,
     WEBHOOK: `${PAGOS}/webhook`,
   },
   ADMIN: {

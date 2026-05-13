@@ -4,6 +4,10 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 
 
+class CrearPagoRequest(BaseModel):
+    pedido_id: int = Field(..., gt=0)
+
+
 class PagoCreate(BaseModel):
     pedido_id: int = Field(..., gt=0)
     monto: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2)
