@@ -43,29 +43,24 @@ class TestCheckoutAPI:
             telefono="1234567890",
         )
         session.add(user)
+        # Crear rol CLIENT
+        rol = Rol(nombre="CLIENT")
+        session.add(rol)
         await session.flush()
-
-        result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-        rol = result.scalar_one()
         session.add(UsuarioRol(usuario_id=user.id, rol_id=rol.id))
 
         # Crear producto
-        categoria = Categoria(nombre="Test Cat")
-        session.add(categoria)
-        await session.flush()
-
         producto = Producto(
             nombre="Test Product",
             descripcion="Test",
             precio=100.0,
             stock_cantidad=10,
             disponible=True,
-            categoria_id=categoria.id,
         )
         session.add(producto)
         await session.commit()
 
-        token = create_access_token({"sub": user.email, "id": user.id})
+        token = create_access_token({"sub": str(user.id), "email": user.email, "roles": ["CLIENT"]})
 
         response = await client.post(
             "/api/v1/pedidos/validar",
@@ -95,15 +90,10 @@ class TestCheckoutAPI:
             telefono="1234567890",
         )
         session.add(user)
+        rol = Rol(nombre="CLIENT")
+        session.add(rol)
         await session.flush()
-
-        result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-        rol = result.scalar_one()
         session.add(UsuarioRol(usuario_id=user.id, rol_id=rol.id))
-
-        categoria = Categoria(nombre="Test Cat")
-        session.add(categoria)
-        await session.flush()
 
         producto = Producto(
             nombre="Low Stock",
@@ -111,12 +101,11 @@ class TestCheckoutAPI:
             precio=100.0,
             stock_cantidad=2,
             disponible=True,
-            categoria_id=categoria.id,
         )
         session.add(producto)
         await session.commit()
 
-        token = create_access_token({"sub": user.email, "id": user.id})
+        token = create_access_token({"sub": str(user.id), "email": user.email, "roles": ["CLIENT"]})
 
         response = await client.post(
             "/api/v1/pedidos/validar",
@@ -142,14 +131,13 @@ class TestCheckoutAPI:
             telefono="1234567890",
         )
         session.add(user)
+        rol = Rol(nombre="CLIENT")
+        session.add(rol)
         await session.flush()
-
-        result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-        rol = result.scalar_one()
         session.add(UsuarioRol(usuario_id=user.id, rol_id=rol.id))
         await session.commit()
 
-        token = create_access_token({"sub": user.email, "id": user.id})
+        token = create_access_token({"sub": str(user.id), "email": user.email, "roles": ["CLIENT"]})
 
         response = await client.post(
             "/api/v1/pedidos/calcular-total",

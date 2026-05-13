@@ -20,14 +20,12 @@ async def get_auth_token(client: AsyncClient, email: str = "test@test.com", pass
     from backend.auth.models.rol import Rol
     from backend.auth.models.usuario_rol import UsuarioRol
     from backend.core.security import get_password_hash, create_access_token
-
-    # Crear usuario en la DB si no existe
     from sqlalchemy import select
     from backend.core.database import async_session_factory
 
     async with async_session_factory() as session:
         result = await session.execute(select(Usuario).where(Usuario.email == email))
-        user = result.scalar_oneOrNone()
+        user = result.scalar_one_or_none()
 
         if not user:
             user = Usuario(
@@ -39,13 +37,14 @@ async def get_auth_token(client: AsyncClient, email: str = "test@test.com", pass
             session.add(user)
             await session.flush()
 
-            # Asignar rol CLIENT
-            result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-            rol = result.scalar_one()
+            # Crear rol CLIENT y asignarlo
+            rol = Rol(nombre="CLIENT")
+            session.add(rol)
+            await session.flush()
             session.add(UsuarioRol(usuario_id=user.id, rol_id=rol.id))
             await session.commit()
 
-    token = create_access_token({"sub": email, "id": user.id})
+    token = create_access_token({"sub": str(user.id), "email": email, "roles": ["CLIENT"]})
     return token
 
 
@@ -59,6 +58,7 @@ class TestDireccionesAPI:
         from backend.auth.models.usuario_rol import UsuarioRol
         from backend.core.security import get_password_hash
         from backend.core.security import create_access_token
+        from sqlalchemy import select
 
         # Crear usuario
         user = Usuario(
@@ -68,14 +68,14 @@ class TestDireccionesAPI:
             telefono="1234567890",
         )
         session.add(user)
+        # Crear rol CLIENT en test
+        rol = Rol(nombre="CLIENT")
+        session.add(rol)
         await session.flush()
-
-        result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-        rol = result.scalar_one()
         session.add(UsuarioRol(usuario_id=user.id, rol_id=rol.id))
         await session.commit()
 
-        token = create_access_token({"sub": user.email, "id": user.id})
+        token = create_access_token({"sub": str(user.id), "email": user.email, "roles": ["CLIENT"]})
 
         response = await client.post(
             "/api/v1/direcciones",
@@ -105,6 +105,7 @@ class TestDireccionesAPI:
         from backend.auth.models.usuario_rol import UsuarioRol
         from backend.auth.models.direccion import DireccionEntrega
         from backend.core.security import get_password_hash, create_access_token
+        from sqlalchemy import select
 
         # Crear usuario
         user = Usuario(
@@ -114,10 +115,9 @@ class TestDireccionesAPI:
             telefono="1234567890",
         )
         session.add(user)
+        rol = Rol(nombre="CLIENT")
+        session.add(rol)
         await session.flush()
-
-        result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-        rol = result.scalar_one()
         session.add(UsuarioRol(usuario_id=user.id, rol_id=rol.id))
 
         # Crear dirección
@@ -131,7 +131,7 @@ class TestDireccionesAPI:
         session.add(direccion)
         await session.commit()
 
-        token = create_access_token({"sub": user.email, "id": user.id})
+        token = create_access_token({"sub": str(user.id), "email": user.email, "roles": ["CLIENT"]})
 
         response = await client.get(
             "/api/v1/direcciones",
@@ -150,6 +150,7 @@ class TestDireccionesAPI:
         from backend.auth.models.usuario_rol import UsuarioRol
         from backend.auth.models.direccion import DireccionEntrega
         from backend.core.security import get_password_hash, create_access_token
+        from sqlalchemy import select
 
         # Crear dos usuarios
         user1 = Usuario(
@@ -159,8 +160,6 @@ class TestDireccionesAPI:
             telefono="1234567890",
         )
         session.add(user1)
-        await session.flush()
-
         user2 = Usuario(
             nombre="User2",
             email="user2@test.com",
@@ -168,10 +167,9 @@ class TestDireccionesAPI:
             telefono="1234567890",
         )
         session.add(user2)
+        rol = Rol(nombre="CLIENT")
+        session.add(rol)
         await session.flush()
-
-        result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-        rol = result.scalar_one()
         session.add(UsuarioRol(usuario_id=user1.id, rol_id=rol.id))
         session.add(UsuarioRol(usuario_id=user2.id, rol_id=rol.id))
 
@@ -187,7 +185,7 @@ class TestDireccionesAPI:
         await session.commit()
 
         # Intentar editar como user2
-        token2 = create_access_token({"sub": user2.email, "id": user2.id})
+        token2 = create_access_token({"sub": str(user2.id), "email": user2.email, "roles": ["CLIENT"]})
 
         response = await client.put(
             f"/api/v1/direcciones/{direccion.id}",
@@ -204,6 +202,7 @@ class TestDireccionesAPI:
         from backend.auth.models.usuario_rol import UsuarioRol
         from backend.auth.models.direccion import DireccionEntrega
         from backend.core.security import get_password_hash, create_access_token
+        from sqlalchemy import select
 
         user = Usuario(
             nombre="Test",
@@ -212,10 +211,9 @@ class TestDireccionesAPI:
             telefono="1234567890",
         )
         session.add(user)
+        rol = Rol(nombre="CLIENT")
+        session.add(rol)
         await session.flush()
-
-        result = await session.execute(select(Rol).where(Rol.nombre == "CLIENT"))
-        rol = result.scalar_one()
         session.add(UsuarioRol(usuario_id=user.id, rol_id=rol.id))
 
         dir1 = DireccionEntrega(
@@ -238,7 +236,7 @@ class TestDireccionesAPI:
         session.add(dir2)
         await session.commit()
 
-        token = create_access_token({"sub": user.email, "id": user.id})
+        token = create_access_token({"sub": str(user.id), "email": user.email, "roles": ["CLIENT"]})
 
         response = await client.post(
             f"/api/v1/direcciones/{dir2.id}/predeterminada",

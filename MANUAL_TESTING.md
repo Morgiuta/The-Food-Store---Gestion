@@ -29,6 +29,14 @@ docker compose ps
 
 La base de datos `foodstore` se crea automáticamente con usuario `user` y password `password`.
 
+```bash
+# Seed data (roles, estados, admin, formas de pago)
+docker exec -i foodstore-db psql -U user -d foodstore -f backend/seed.sql
+
+# O alternativamente, las tablas y seed se crean automáticamente al iniciar el backend
+# con `Base.metadata.create_all()` (ver backend/main.py lifespan)
+```
+
 ---
 
 ## 3. Backend (FastAPI)
@@ -228,7 +236,138 @@ curl -X PUT http://localhost:8000/api/v1/productos/1 \
   -d '{"precio": 180.00}'
 ```
 
-### 5.9 Probar role-based access
+### 5.9 Probar direcciones de entrega
+
+```bash
+TOKEN="eyJ..." # Token de CLIENT
+
+# Crear dirección
+curl -X POST http://localhost:8000/api/v1/direcciones \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "calle": "Av. Siempre Viva",
+    "numero": "123",
+    "ciudad": "Buenos Aires",
+    "provincia": "CABA",
+    "codigo_postal": "1426"
+  }'
+
+# Listar mis direcciones
+curl http://localhost:8000/api/v1/direcciones \
+  -H "Authorization: Bearer $TOKEN"
+
+# Marcar como predeterminada
+curl -X POST http://localhost:8000/api/v1/direcciones/1/predeterminada \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 5.10 Probar pedidos
+
+```bash
+# Primero crear un producto (como admin)
+TOKEN_ADMIN="eyJ..."
+curl -X POST http://localhost:8000/api/v1/productos \
+  -H "Authorization: Bearer $TOKEN_ADMIN" \
+  -H "Content-Type: application/json" \
+  -d '{"nombre": "Producto Test", "precio": 100.00, "stock_cantidad": 50}'
+
+# Crear pedido (como CLIENT, con producto_id del paso anterior)
+TOKEN_CLIENT="eyJ..."
+curl -X POST http://localhost:8000/api/v1/pedidos \
+  -H "Authorization: Bearer $TOKEN_CLIENT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [{"producto_id": 1, "cantidad": 2}],
+    "direccion_id": 1
+  }'
+
+# Listar mis pedidos
+curl http://localhost:8000/api/v1/pedidos \
+  -H "Authorization: Bearer $TOKEN_CLIENT"
+
+# Ver detalle de pedido
+curl http://localhost:8000/api/v1/pedidos/1 \
+  -H "Authorization: Bearer $TOKEN_CLIENT"
+
+# Avanzar estado (ADMIN/PEDIDOS)
+curl -X PATCH http://localhost:8000/api/v1/pedidos/1/estado \
+  -H "Authorization: Bearer $TOKEN_ADMIN" \
+  -H "Content-Type: application/json" \
+  -d '{"nuevo_estado": "EN_PREPARACION"}'
+
+# Cancelar pedido
+curl -X PATCH http://localhost:8000/api/v1/pedidos/1/cancelar \
+  -H "Authorization: Bearer $TOKEN_ADMIN" \
+  -H "Content-Type: application/json" \
+  -d '{"motivo": "Cancelado por solicitud del cliente"}'
+
+# Ver historial de estados
+curl http://localhost:8000/api/v1/pedidos/1/historial \
+  -H "Authorization: Bearer $TOKEN_CLIENT"
+```
+
+### 5.11 Probar pagos (MercadoPago)
+
+```bash
+# Crear preferencia de pago (necesita MERCADOPAGO_ACCESS_TOKEN configurado)
+curl -X POST http://localhost:8000/api/v1/pagos/crear \
+  -H "Authorization: Bearer $TOKEN_CLIENT" \
+  -H "Content-Type: application/json" \
+  -d '{"pedido_id": 1}'
+
+# Consultar estado de pago
+curl http://localhost:8000/api/v1/pagos/1 \
+  -H "Authorization: Bearer $TOKEN_CLIENT"
+```
+
+### 5.12 Probar panel admin (Dashboard, Config, Auditoría)
+
+```bash
+TOKEN_ADMIN="eyJ..."
+
+# KPIs del dashboard
+curl http://localhost:8000/api/v1/admin/stats \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+
+# Ingresos por período
+curl "http://localhost:8000/api/v1/admin/stats/revenue?periodo=month" \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+
+# Pedidos por estado
+curl http://localhost:8000/api/v1/admin/stats/orders \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+
+# Productos: stock bajo y más vendidos
+curl http://localhost:8000/api/v1/admin/stats/products \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+
+# Configuración del sistema
+curl http://localhost:8000/api/v1/admin/config \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+
+# Formas de pago
+curl http://localhost:8000/api/v1/admin/formas-pago \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+
+# Auditoría de cambios
+curl http://localhost:8000/api/v1/admin/audit \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+```
+
+### 5.13 Probar listado admin de pedidos y pagos
+
+```bash
+# Listar todos los pedidos (admin)
+curl "http://localhost:8000/api/v1/pedidos/admin/all?page=1&size=20" \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+
+# Listar pagos (admin)
+curl "http://localhost:8000/api/v1/admin/pagos?page=1&size=20" \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+```
+
+### 5.14 Probar role-based access
 
 ```bash
 # Login como cliente
@@ -270,31 +409,54 @@ done
 1. Abrir http://localhost:5173
 2. **Sin autenticar**: Ver catálogo de productos, login, registro
 3. **Registrarse**: Completar formulario → redirige al catálogo
-4. **Login**: Email `admin@foodstore.com` / `Admin123!` → menú admin completo
-5. **Admin**: Navegar a las secciones del panel:
+4. **Login como CLIENT**: Email `cliente@test.com` / `password123`
+   - Ver perfil, mis direcciones, mis pedidos
+   - Navegar catálogo, agregar al carrito, checkout
+5. **Login como ADMIN**: Email `admin@foodstore.com` / `Admin123!` → panel admin completo
+6. **Admin — Dashboard** (`/admin/dashboard`):
+   - KPIs: ventas totales, pedidos hoy, usuarios activos, stock bajo
+   - Gráfico de ingresos (selector día/semana/mes)
+   - Gráfico de torta de pedidos por estado
+   - Tabla de stock bajo y productos más vendidos
+7. **Admin — Secciones**:
    - Usuarios: listar, editar, activar/desactivar
    - Productos: crear, editar, eliminar
    - Categorías: crear árbol jerárquico
    - Ingredientes: crear con flag de alérgeno
-6. **Cerrar sesión** → volver a vista pública
-7. **Error 403**: Intentar acceder a `/admin` sin ser admin → redirige a página 403
+   - Pedidos: tabla con filtros, avanzar estado, cancelar
+   - Pagos: listar, ver detalle, reembolsar
+   - Configuración: editar parámetros, toggle formas de pago
+   - Auditoría: ver cambios en el sistema
+8. **Cliente — Pedidos** (`/mis-pedidos`):
+   - Lista de pedidos con estado y total
+   - Detalle con historial de cambios
+9. **Cliente — Checkout** (`/checkout`):
+   - Seleccionar dirección de entrega
+   - Calcular envío
+   - Pagar con MercadoPago
+10. **Cerrar sesión** → volver a vista pública
+11. **Error 403**: Intentar acceder a `/admin` sin ser admin → redirige a página 403
 
 ---
 
 ## 7. Tests Automatizados
 
 ```bash
-# Tests del backend (162 tests)
+# Tests del backend (188 tests — todos deben pasar)
 cd backend
 pytest -v
 
-# Tests del frontend (7 tests)
+# Tests del frontend
 cd frontend
 npm test
 
 # TypeScript
 cd frontend
 npx tsc --noEmit
+
+# Tests E2E (Playwright)
+cd frontend
+npx playwright test
 ```
 
 ---

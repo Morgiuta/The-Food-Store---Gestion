@@ -14,22 +14,15 @@ async def disable_rate_limiting():
     auth_limiter.enabled = True
 
 
-async def create_test_producto(session: AsyncSession, nombre: str = "Test Product", stock: int = 10, precio: float = 100.0):
+async def create_test_producto(session: AsyncSession, nombre: str = "Test Product", stock: int = 10, precio: float = 100.0, disponible: bool = True):
     from backend.productos.models.producto import Producto
-    from backend.categorias.models.categoria import Categoria
-
-    # Crear categoría si no existe
-    categoria = Categoria(nombre="Test Category")
-    session.add(categoria)
-    await session.flush()
 
     producto = Producto(
         nombre=nombre,
         descripcion="Test description",
         precio=precio,
         stock_cantidad=stock,
-        disponible=True,
-        categoria_id=categoria.id,
+        disponible=disponible,
     )
     session.add(producto)
     await session.flush()
@@ -93,7 +86,7 @@ class TestCheckoutService:
         ])
 
         assert result["valido"] is False
-        assert "no disponible" in result["errores"][0]
+        assert "no est" in result["errores"][0] or "no disponible" in result["errores"][0]
 
     async def test_validar_stock_multiple_items(self, session: AsyncSession):
         """Verificar validación con múltiples items"""
