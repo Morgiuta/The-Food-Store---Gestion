@@ -14,12 +14,13 @@ class ItemPedidoRequest(BaseModel):
 
 class CrearPedidoRequest(BaseModel):
     items: list[ItemPedidoRequest] = Field(..., min_length=1)
-    direccion_id: int = Field(..., gt=0)
-    forma_pago_id: int = Field(..., gt=0)
+    direccion_id: int | None = None
+    forma_pago_id: int | None = None
 
 
 class AvanzarEstadoRequest(BaseModel):
-    observacion: str | None = Field(None, max_length=500)
+    nuevo_estado: str
+    motivo: str | None = Field(None, max_length=500)
 
 
 class DetallePedidoRead(BaseModel):
@@ -59,3 +60,11 @@ class PedidoRead(BaseModel):
 class PedidoDetail(PedidoRead):
     detalles: list[DetallePedidoRead] = []
     historial: list[HistorialEstadoRead] = []
+
+
+class PaginatedPedidos(BaseModel):
+    items: list[PedidoRead]
+    total: int
+    page: int
+    size: int
+    pages: int

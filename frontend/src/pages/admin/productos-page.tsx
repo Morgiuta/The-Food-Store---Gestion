@@ -25,8 +25,8 @@ export default function ProductosPage() {
   const deleteMutation = useDeleteProducto();
   const addNotification = useUIStore((s) => s.addNotification);
 
-  const productos = data?.data ?? [];
-  const totalPages = data?.total_pages ?? 1;
+  const productos = data?.items ?? [];
+  const totalPages = data?.pages ?? 1;
 
   const handleDelete = (prod: Product) => {
     if (!window.confirm(`¿Eliminar el producto "${prod.nombre}"?`)) return;

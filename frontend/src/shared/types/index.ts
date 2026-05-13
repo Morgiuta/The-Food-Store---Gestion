@@ -59,40 +59,52 @@ export interface Address {
 export type EstadoPedido =
   | 'PENDIENTE'
   | 'CONFIRMADO'
-  | 'PREPARACION'
-  | 'ENVIADO'
+  | 'EN_PREPARACION'
+  | 'EN_CAMINO'
   | 'ENTREGADO'
-  | 'CANCELADO'
-  | 'RECHAZADO';
+  | 'CANCELADO';
 
 export interface Order {
   id: number;
   usuario_id: number;
-  estado: EstadoPedido;
+  estado: string;
   total: number;
-  direccion: Address;
-  detalles: OrderDetail[];
+  costo_envio: number;
   creado_en: string;
-  actualizado_en: string;
 }
 
 export interface OrderDetail {
   id: number;
-  producto_id: number;
-  producto_nombre: string;
+  producto_id: number | null;
+  producto_nombre: string | null;
   cantidad: number;
   precio_unitario: number;
   subtotal: number;
-  personalizacion?: string;
+  personalizacion: number[];
 }
 
-export interface OrderHistory {
+export interface OrderHistoryEntry {
   id: number;
-  pedido_id: number;
-  estado_anterior: EstadoPedido;
-  estado_nuevo: EstadoPedido;
-  cambiado_por: string;
-  creado_en: string;
+  estado_anterior: string | null;
+  estado_nuevo: string;
+  usuario_id: number | null;
+  observacion: string | null;
+  timestamp: string;
+}
+
+export interface OrderFull extends Order {
+  detalles: OrderDetail[];
+  historial: OrderHistoryEntry[];
+}
+
+export interface CreateOrderPayload {
+  items: {
+    producto_id: number;
+    cantidad: number;
+    personalizacion?: number[];
+  }[];
+  direccion_id?: number;
+  forma_pago_id?: number;
 }
 
 export interface Payment {
@@ -117,9 +129,9 @@ export interface ApiResponse<T> {
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
+  items: T[];
   total: number;
   page: number;
-  per_page: number;
-  total_pages: number;
+  size: number;
+  pages: number;
 }

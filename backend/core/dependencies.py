@@ -98,21 +98,58 @@ CurrentUser = Annotated[dict[str, Any], Depends(get_current_user)]
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
 
-def RoleRequired(roles: list[str]) -> Any:
+async def _role_required_dependency(
+    roles: list[str],
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
     """
-    Factory for role-based authorization dependencies.
+    Dependency that validates the current user has at least one of the required roles.
+
+    Args:
+        roles: List of role names that are allowed
+        current_user: User info from get_current_user
+
+    Returns:
+        The current user dict if authorized
+
+    Raises:
+        ForbiddenException: If user lacks any required role
+    """
+    user_roles = current_user.get("roles", [])
+    if not any(role in user_roles for role in roles):
+        raise ForbiddenException(
+            detail="Insufficient permissions",
+            instance=f"Required roles: {', '.join(roles)}",
+        )
+    return current_user
+
+
+class RoleRequired:
+    """
+    Factory class for role-based authorization dependencies.
 
     Usage:
         @router.get("/admin-only")
         async def admin_endpoint(
-            current_user: CurrentUser = Depends(RoleRequired(["ADMIN"]))
+            current_user: dict = Depends(RoleRequired(["ADMIN"]))
         ):
             ...
 
     Args:
         roles: List of required role names
-
-    Returns:
-        A FastAPI dependency that validates role access
     """
-    return Depends(lambda: None)  # Placeholder; use with require_role
+
+    def __init__(self, roles: list[str]):
+        self.roles = roles
+
+    async def __call__(
+        self,
+        current_user: dict[str, Any] = Depends(get_current_user),
+    ) -> dict[str, Any]:
+        user_roles = current_user.get("roles", [])
+        if not any(role in user_roles for role in self.roles):
+            raise ForbiddenException(
+                detail="Insufficient permissions",
+                instance=f"Required roles: {', '.join(self.roles)}",
+            )
+        return current_user

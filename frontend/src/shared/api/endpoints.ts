@@ -41,6 +41,7 @@ export const ENDPOINTS = {
     HISTORY: (id: number) => `${PEDIDOS}/${id}/historial`,
     VALIDAR: `${PEDIDOS}/validar`,
     CALCULAR_TOTAL: `${PEDIDOS}/calcular-total`,
+    ADMIN_ALL: `${PEDIDOS}/admin/all`,
   },
   PAGOS: {
     CREATE: `${PAGOS}/create`,

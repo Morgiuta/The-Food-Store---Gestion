@@ -16,6 +16,8 @@ const CatalogPage = lazy(() => import('@/pages/productos/catalog-page'));
 const ShoppingCartPage = lazy(() => import('@/pages/carrito/shopping-cart-page'));
 const CheckoutPage = lazy(() => import('@/pages/checkout/checkout-page'));
 const DireccionesPage = lazy(() => import('@/features/direcciones/pages/direcciones-page'));
+const OrderListPage = lazy(() => import('@/pages/pedidos/order-list-page'));
+const OrderConfirmationPage = lazy(() => import('@/pages/pedidos/order-confirmation-page'));
 const NotFoundPage = lazy(() => import('@/pages/dashboard/not-found-page'));
 const ForbiddenPage = lazy(() => import('@/pages/dashboard/forbidden-page'));
 const UnauthorizedPage = lazy(() => import('@/pages/dashboard/unauthorized-page'));
@@ -46,7 +48,15 @@ export function AppRouter() {
           path="/mis-pedidos"
           element={
             <ProtectedRoute>
-              <div className="p-8 text-center text-gray-500">Mis pedidos — próximamente</div>
+              <SuspenseWrapper><OrderListPage /></SuspenseWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pedidos/confirmacion/:id"
+          element={
+            <ProtectedRoute>
+              <SuspenseWrapper><OrderConfirmationPage /></SuspenseWrapper>
             </ProtectedRoute>
           }
         />

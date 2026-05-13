@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, HTMLAttributes } from 'react';
 
 interface CardProps {
   title?: string;
@@ -17,4 +17,12 @@ export function Card({ title, children, className = '' }: CardProps) {
       <div className="p-4">{children}</div>
     </div>
   );
+}
+
+export function CardContent({ children, className = '' }: CardProps) {
+  return <div className={className}>{children}</div>;
+}
+
+export function CardFooter({ children, className = '', ...props }: CardProps & HTMLAttributes<HTMLDivElement>) {
+  return <div className={className} {...props}>{children}</div>;
 }
