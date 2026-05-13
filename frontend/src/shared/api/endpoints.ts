@@ -56,6 +56,9 @@ export const ENDPOINTS = {
     USUARIOS: `${ADMIN}/usuarios`,
     USUARIO_BY_ID: (id: number) => `${ADMIN}/usuarios/${id}`,
     USUARIO_ESTADO: (id: number) => `${ADMIN}/usuarios/${id}/estado`,
+    PAGOS: `${ADMIN}/pagos`,
+    PAGO_BY_ID: (id: number) => `${ADMIN}/pagos/${id}`,
+    REEMBOLSAR: (id: number) => `${ADMIN}/pagos/${id}/reembolsar`,
   },
   PERFIL: {
     BASE: PERFIL,

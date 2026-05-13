@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Sequence
 
 from sqlalchemy import select
@@ -19,6 +20,38 @@ class PagoRepository(BaseRepository[Pago]):
         )
         result = await self._session.execute(stmt)
         return result.scalars().all()
+
+    async def list_by_date_range(
+        self,
+        fecha_desde: Optional[datetime] = None,
+        fecha_hasta: Optional[datetime] = None,
+        mp_status: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Sequence[Pago]:
+        stmt = select(Pago)
+
+        if fecha_desde is not None:
+            stmt = stmt.where(Pago.creado_en >= fecha_desde)
+        if fecha_hasta is not None:
+            stmt = stmt.where(Pago.creado_en <= fecha_hasta)
+        if mp_status is not None:
+            stmt = stmt.where(Pago.mp_status == mp_status)
+
+        stmt = stmt.order_by(Pago.creado_en.desc()).offset(skip).limit(limit)
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
+
+    async def count_by_status(self, mp_status: Optional[str] = None) -> int:
+        from sqlalchemy import func
+
+        stmt = select(func.count()).select_from(Pago)
+        if mp_status is not None:
+            stmt = stmt.where(Pago.mp_status == mp_status)
+        result = await self._session.execute(stmt)
+        return result.scalar_one()
+
+
 
     async def get_by_preference(
         self, external_reference: str
