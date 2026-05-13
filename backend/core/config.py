@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     # MercadoPago Configuration
     MP_ACCESS_TOKEN: Optional[str] = None
     MP_PUBLIC_KEY: Optional[str] = None
+    MERCADOPAGO_ACCESS_TOKEN: Optional[str] = None
+    MERCADOPAGO_PUBLIC_KEY: Optional[str] = None
+
+    # URLs
+    FRONTEND_URL: str = "http://localhost:3000"
+    API_URL: str = "http://localhost:8000"
 
     # Logging Configuration
     LOG_LEVEL: str = "INFO"

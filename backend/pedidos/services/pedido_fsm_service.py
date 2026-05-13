@@ -69,6 +69,7 @@ class PedidoFsmService:
         observacion: str | None,
         usuario_id: int,
         roles: list[str],
+        system_action: bool = False,
     ) -> Pedido:
         """Advance an order to the next state."""
         stmt = (
@@ -89,11 +90,12 @@ class PedidoFsmService:
 
         self.validar_transicion(estado_actual_codigo, nuevo_estado_codigo)
 
-        if not any(r in roles for r in ["ADMIN", "PEDIDOS"]):
+        if not any(r in roles for r in ["ADMIN", "PEDIDOS"]) and not system_action:
             raise ForbiddenException("No tienes permisos para avanzar estados de pedido")
 
         if estado_actual_codigo == "PENDIENTE" and nuevo_estado_codigo == "CONFIRMADO":
-            raise ValidationException("La transición PENDIENTE\u2192CONFIRMADO solo puede ocurrir por pago aprobado")
+            if not system_action:
+                raise ValidationException("La transición PENDIENTE\u2192CONFIRMADO solo puede ocurrir por pago aprobado")
 
         estado_ids = self._get_estado_ids()
         nuevo_estado_id = estado_ids[nuevo_estado_codigo]
