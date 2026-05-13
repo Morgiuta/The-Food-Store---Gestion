@@ -128,6 +128,21 @@ export interface ApiResponse<T> {
   success: boolean;
 }
 
+export interface PagoInfo {
+  id: number;
+  pedido_id: number;
+  monto: number;
+  mp_status: string | null;
+  external_reference: string | null;
+  creado_en: string;
+}
+
+export interface PagoDetail extends PagoInfo {
+  mp_payment_id: string | null;
+  idempotency_key: string | null;
+  actualizado_en: string;
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
