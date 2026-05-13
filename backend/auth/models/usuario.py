@@ -18,7 +18,7 @@ class Usuario(Base):
     actualizado_en = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
     eliminado_en = Column(DateTime(timezone=True), nullable=True, index=True)
 
-    roles = relationship("UsuarioRol", back_populates="usuario", cascade="all, delete-orphan")
+    roles = relationship("UsuarioRol", back_populates="usuario", cascade="all, delete-orphan", foreign_keys="UsuarioRol.usuario_id")
     refresh_tokens = relationship("RefreshToken", back_populates="usuario", cascade="all, delete-orphan")
     direcciones = relationship("DireccionEntrega", back_populates="usuario", cascade="all, delete-orphan")
     pedidos = relationship("Pedido", back_populates="usuario")
