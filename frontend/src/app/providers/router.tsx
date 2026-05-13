@@ -13,6 +13,7 @@ const AdminProductosPage = lazy(() => import('@/pages/admin/productos-page'));
 const CategoriasPage = lazy(() => import('@/pages/admin/categorias-page'));
 const IngredientesPage = lazy(() => import('@/pages/admin/ingredientes-page'));
 const AdminOrdersPage = lazy(() => import('@/pages/admin/orders-page'));
+const AdminDashboardPage = lazy(() => import('@/pages/admin/dashboard-page'));
 const AdminPagosPage = lazy(() => import('@/pages/admin/pagos-page'));
 const CatalogPage = lazy(() => import('@/pages/productos/catalog-page'));
 const ShoppingCartPage = lazy(() => import('@/pages/carrito/shopping-cart-page'));
@@ -92,7 +93,7 @@ export function AppRouter() {
         }
       >
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="dashboard" element={<div className="p-8 text-gray-500">Panel de administración — próximamente</div>} />
+        <Route path="dashboard" element={<SuspenseWrapper><AdminDashboardPage /></SuspenseWrapper>} />
         <Route path="usuarios" element={<SuspenseWrapper><AdminUsersPage /></SuspenseWrapper>} />
         <Route path="productos" element={<SuspenseWrapper><AdminProductosPage /></SuspenseWrapper>} />
         <Route path="categorias" element={<SuspenseWrapper><CategoriasPage /></SuspenseWrapper>} />
