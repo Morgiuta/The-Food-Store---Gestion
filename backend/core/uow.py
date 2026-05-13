@@ -14,6 +14,7 @@ from backend.auth.repositories.rol import RolRepository
 from backend.auth.repositories.usuario_rol import UsuarioRolRepository
 from backend.categorias.repositories.categoria import CategoriaRepository
 from backend.ingredientes.repositories.ingrediente import IngredienteRepository
+from backend.admin.repositories.audit_log import AuditLogRepository
 from backend.admin.repositories.configuracion import ConfiguracionRepository
 from backend.pagos.repositories.forma_pago import FormaPagoRepository
 from backend.pagos.repositories.pago import PagoRepository
@@ -81,6 +82,7 @@ class UnitOfWork:
             "formas_pago", FormaPagoRepository
         )
         self.pagos: PagoRepository = self._get_or_create_repo("pagos", PagoRepository)
+        self.audit_logs: AuditLogRepository = self._get_or_create_repo("audit_logs", AuditLogRepository)
 
     def _get_or_create_repo(self, key: str, repo_class: type) -> object:
         """Get or create a repository instance."""
