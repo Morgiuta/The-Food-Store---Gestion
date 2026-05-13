@@ -24,6 +24,7 @@ from backend.direcciones.routes import direcciones as direcciones_routes
 from backend.pedidos.routes import checkout as checkout_routes
 from backend.pedidos.routes import pedidos as pedidos_routes
 from backend.admin.routes import pagos as admin_pagos_routes
+from backend.admin.routes import stats as admin_stats_routes
 from backend.pagos.routes import pagos as pagos_routes
 from backend.core.config import get_settings
 from backend.core.database import engine, Base
@@ -103,4 +104,5 @@ app.include_router(direcciones_routes.router, prefix=settings.API_V1_STR)
 app.include_router(checkout_routes.router, prefix=settings.API_V1_STR)
 app.include_router(pedidos_routes.router, prefix=settings.API_V1_STR)
 app.include_router(admin_pagos_routes.router, prefix=settings.API_V1_STR)
+app.include_router(admin_stats_routes.router, prefix=settings.API_V1_STR)
 app.include_router(pagos_routes.router, prefix=settings.API_V1_STR)
