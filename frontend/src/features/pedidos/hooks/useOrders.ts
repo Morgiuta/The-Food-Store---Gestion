@@ -38,12 +38,20 @@ export function useCrearPedido() {
   });
 }
 
-export function usePedidosAdmin(page: number = 1, size: number = 20, estadoId?: number) {
+export function usePedidosAdmin(
+  page: number = 1,
+  size: number = 20,
+  estadoId?: number,
+  fechaDesde?: Date,
+  fechaHasta?: Date,
+) {
   return useQuery<PaginatedResponse<Order>>({
-    queryKey: ['pedidos-admin', page, size, estadoId],
+    queryKey: ['pedidos-admin', page, size, estadoId, fechaDesde, fechaHasta],
     queryFn: async () => {
-      const params: Record<string, number> = { page, size };
+      const params: Record<string, string | number> = { page, size };
       if (estadoId !== undefined) params.estado_id = estadoId;
+      if (fechaDesde) params.fecha_desde = fechaDesde.toISOString();
+      if (fechaHasta) params.fecha_hasta = fechaHasta.toISOString();
       const { data } = await apiClient.get(ENDPOINTS.PEDIDOS.ADMIN_ALL, { params });
       return data;
     },

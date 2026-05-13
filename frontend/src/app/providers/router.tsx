@@ -12,6 +12,7 @@ const AdminUsersPage = lazy(() => import('@/pages/admin/users-page'));
 const AdminProductosPage = lazy(() => import('@/pages/admin/productos-page'));
 const CategoriasPage = lazy(() => import('@/pages/admin/categorias-page'));
 const IngredientesPage = lazy(() => import('@/pages/admin/ingredientes-page'));
+const AdminOrdersPage = lazy(() => import('@/pages/admin/orders-page'));
 const CatalogPage = lazy(() => import('@/pages/productos/catalog-page'));
 const ShoppingCartPage = lazy(() => import('@/pages/carrito/shopping-cart-page'));
 const CheckoutPage = lazy(() => import('@/pages/checkout/checkout-page'));
@@ -94,7 +95,7 @@ export function AppRouter() {
         <Route path="usuarios" element={<SuspenseWrapper><AdminUsersPage /></SuspenseWrapper>} />
         <Route path="productos" element={<SuspenseWrapper><AdminProductosPage /></SuspenseWrapper>} />
         <Route path="categorias" element={<SuspenseWrapper><CategoriasPage /></SuspenseWrapper>} />
-        <Route path="pedidos" element={<div className="p-8 text-gray-500">Pedidos — próximamente</div>} />
+        <Route path="pedidos" element={<SuspenseWrapper><AdminOrdersPage /></SuspenseWrapper>} />
         <Route path="ingredientes" element={<SuspenseWrapper><IngredientesPage /></SuspenseWrapper>} />
       </Route>
     </Routes>

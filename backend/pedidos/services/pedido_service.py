@@ -2,6 +2,7 @@
 Service for creating and managing orders with atomic transactions.
 """
 import json
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -212,6 +213,8 @@ class PedidoService:
         skip: int = 0,
         limit: int = 20,
         estado_id: int | None = None,
+        fecha_desde: datetime | None = None,
+        fecha_hasta: datetime | None = None,
     ) -> tuple[list[Pedido], int]:
         """List all orders for admin/pedidos with optional filters."""
         base_query = select(Pedido).where(Pedido.eliminado_en.is_(None))
@@ -220,6 +223,14 @@ class PedidoService:
         if estado_id is not None:
             base_query = base_query.where(Pedido.estado_id == estado_id)
             count_query = count_query.where(Pedido.estado_id == estado_id)
+
+        if fecha_desde is not None:
+            base_query = base_query.where(Pedido.creado_en >= fecha_desde)
+            count_query = count_query.where(Pedido.creado_en >= fecha_desde)
+
+        if fecha_hasta is not None:
+            base_query = base_query.where(Pedido.creado_en <= fecha_hasta)
+            count_query = count_query.where(Pedido.creado_en <= fecha_hasta)
 
         result = await uow._session.execute(count_query)
         total = result.scalar_one()
