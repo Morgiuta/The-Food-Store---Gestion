@@ -63,6 +63,7 @@ export const ENDPOINTS = {
     STATS_REVENUE: `${ADMIN}/stats/revenue`,
     STATS_ORDERS: `${ADMIN}/stats/orders`,
     STATS_PRODUCTS: `${ADMIN}/stats/products`,
+    AUDIT: `${ADMIN}/audit`,
     CONFIG: `${ADMIN}/config`,
     FORMAS_PAGO: `${ADMIN}/formas-pago`,
     FORMA_PAGO_BY_ID: (id: number) => `${ADMIN}/formas-pago/${id}`,
