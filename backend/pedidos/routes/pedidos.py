@@ -7,14 +7,55 @@ from backend.core.dependencies import DatabaseSession, RoleRequired, get_current
 from backend.core.exceptions import NotFoundException
 from backend.core.uow import UnitOfWork
 from backend.pedidos.schemas.pedido import (
+    AvanzarEstadoRequest,
+    CancelarPedidoRequest,
     CrearPedidoRequest,
+    HistorialEstadoRead,
     PaginatedPedidos,
     PedidoDetail,
 )
+from backend.pedidos.services.pedido_fsm_service import PedidoFsmService
 from backend.pedidos.services.pedido_service import PedidoService
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 service = PedidoService()
+fsm_service = PedidoFsmService()
+
+
+def _build_pedido_detail(pedido) -> dict:
+    """Build PedidoDetail response dict from ORM model."""
+    estado_nombre = pedido.estado.nombre if pedido.estado else "DESCONOCIDO"
+    detalles_read = []
+    for det in pedido.detalles or []:
+        detalles_read.append({
+            "id": det.id,
+            "producto_id": det.producto_id,
+            "producto_nombre": getattr(det, "producto_nombre", None),
+            "cantidad": det.cantidad,
+            "precio_unitario": det.precio_snapshot,
+            "subtotal": det.subtotal,
+            "personalizacion": det.personalizacion or [],
+        })
+    historial_read = []
+    for hist in pedido.historial_estados or []:
+        historial_read.append({
+            "id": hist.id,
+            "estado_anterior": hist.estado_anterior.nombre if hist.estado_anterior else None,
+            "estado_nuevo": hist.estado_nuevo.nombre if hist.estado_nuevo else "DESCONOCIDO",
+            "usuario_id": hist.usuario_id,
+            "observacion": hist.observacion,
+            "timestamp": hist.timestamp,
+        })
+    return {
+        "id": pedido.id,
+        "usuario_id": pedido.usuario_id,
+        "estado": estado_nombre,
+        "total": pedido.total,
+        "costo_envio": pedido.costo_envio,
+        "creado_en": pedido.creado_en,
+        "detalles": detalles_read,
+        "historial": historial_read,
+    }
 
 
 def pedido_to_read(pedido) -> dict:
@@ -48,42 +89,7 @@ async def crear_pedido(
             current_user["user_id"],
         )
 
-    estado_nombre = pedido.estado.nombre if pedido.estado else "DESCONOCIDO"
-    detalles_read = []
-    for det in pedido.detalles or []:
-        detalles_read.append({
-            "id": det.id,
-            "producto_id": det.producto_id,
-            "producto_nombre": getattr(det, "producto_nombre", None),
-            "cantidad": det.cantidad,
-            "precio_unitario": det.precio_snapshot,
-            "subtotal": det.subtotal,
-            "personalizacion": det.personalizacion or [],
-        })
-
-    historial_read = []
-    for hist in pedido.historial_estados or []:
-        hist_estado_anterior = hist.estado_anterior.nombre if hist.estado_anterior else None
-        hist_estado_nuevo = hist.estado_nuevo.nombre if hist.estado_nuevo else "DESCONOCIDO"
-        historial_read.append({
-            "id": hist.id,
-            "estado_anterior": hist_estado_anterior,
-            "estado_nuevo": hist_estado_nuevo,
-            "usuario_id": hist.usuario_id,
-            "observacion": hist.observacion,
-            "timestamp": hist.timestamp,
-        })
-
-    return {
-        "id": pedido.id,
-        "usuario_id": pedido.usuario_id,
-        "estado": estado_nombre,
-        "total": pedido.total,
-        "costo_envio": pedido.costo_envio,
-        "creado_en": pedido.creado_en,
-        "detalles": detalles_read,
-        "historial": historial_read,
-    }
+    return _build_pedido_detail(pedido)
 
 
 @router.get("", response_model=PaginatedPedidos)
@@ -130,42 +136,64 @@ async def obtener_pedido(
     if not pedido:
         raise NotFoundException("Pedido no encontrado")
 
-    estado_nombre = pedido.estado.nombre if pedido.estado else "DESCONOCIDO"
-    detalles_read = []
-    for det in pedido.detalles or []:
-        detalles_read.append({
-            "id": det.id,
-            "producto_id": det.producto_id,
-            "producto_nombre": getattr(det, "producto_nombre", None),
-            "cantidad": det.cantidad,
-            "precio_unitario": det.precio_snapshot,
-            "subtotal": det.subtotal,
-            "personalizacion": det.personalizacion or [],
-        })
+    return _build_pedido_detail(pedido)
 
-    historial_read = []
-    for hist in pedido.historial_estados or []:
-        hist_estado_anterior = hist.estado_anterior.nombre if hist.estado_anterior else None
-        hist_estado_nuevo = hist.estado_nuevo.nombre if hist.estado_nuevo else "DESCONOCIDO"
-        historial_read.append({
-            "id": hist.id,
-            "estado_anterior": hist_estado_anterior,
-            "estado_nuevo": hist_estado_nuevo,
-            "usuario_id": hist.usuario_id,
-            "observacion": hist.observacion,
-            "timestamp": hist.timestamp,
-        })
 
-    return {
-        "id": pedido.id,
-        "usuario_id": pedido.usuario_id,
-        "estado": estado_nombre,
-        "total": pedido.total,
-        "costo_envio": pedido.costo_envio,
-        "creado_en": pedido.creado_en,
-        "detalles": detalles_read,
-        "historial": historial_read,
-    }
+@router.patch("/{pedido_id}/estado", response_model=PedidoDetail)
+async def avanzar_estado_pedido(
+    pedido_id: int,
+    body: AvanzarEstadoRequest,
+    session: DatabaseSession,
+    current_user: dict = Depends(get_current_user),
+):
+    """Advance order state (ADMIN/PEDIDOS only)."""
+    async with UnitOfWork(session) as uow:
+        pedido = await fsm_service.avanzar_estado(
+            uow, pedido_id, body.nuevo_estado, body.motivo,
+            current_user["user_id"], current_user["roles"],
+        )
+    return _build_pedido_detail(pedido)
+
+
+@router.patch("/{pedido_id}/cancelar", response_model=PedidoDetail)
+async def cancelar_pedido(
+    pedido_id: int,
+    body: CancelarPedidoRequest,
+    session: DatabaseSession,
+    current_user: dict = Depends(get_current_user),
+):
+    """Cancel an order (permissions depend on current state)."""
+    async with UnitOfWork(session) as uow:
+        pedido = await fsm_service.cancelar(
+            uow, pedido_id, body.motivo,
+            current_user["user_id"], current_user["roles"],
+        )
+    return _build_pedido_detail(pedido)
+
+
+@router.get("/{pedido_id}/historial", response_model=list[HistorialEstadoRead])
+async def obtener_historial_pedido(
+    pedido_id: int,
+    session: DatabaseSession,
+    current_user: dict = Depends(get_current_user),
+):
+    """Get order state history (append-only audit trail)."""
+    async with UnitOfWork(session) as uow:
+        historial = await fsm_service.obtener_historial(
+            uow, pedido_id,
+            current_user["user_id"], current_user["roles"],
+        )
+    return [
+        {
+            "id": h.id,
+            "estado_anterior": h.estado_anterior.nombre if h.estado_anterior else None,
+            "estado_nuevo": h.estado_nuevo.nombre if h.estado_nuevo else "DESCONOCIDO",
+            "usuario_id": h.usuario_id,
+            "observacion": h.observacion,
+            "timestamp": h.timestamp,
+        }
+        for h in historial
+    ]
 
 
 @router.get("/admin/all", response_model=PaginatedPedidos)

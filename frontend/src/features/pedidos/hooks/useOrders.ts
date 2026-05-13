@@ -49,3 +49,38 @@ export function usePedidosAdmin(page: number = 1, size: number = 20, estadoId?: 
     },
   });
 }
+
+export function useAvanzarEstado() {
+  const queryClient = useQueryClient();
+
+  return useMutation<OrderFull, Error, { pedidoId: number; nuevoEstado: string; observacion?: string }>({
+    mutationFn: async ({ pedidoId, nuevoEstado, observacion }) => {
+      const { data } = await apiClient.patch(ENDPOINTS.PEDIDOS.CHANGE_STATUS(pedidoId), {
+        nuevo_estado: nuevoEstado,
+        observacion,
+      });
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['pedido', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['mis-pedidos'] });
+      queryClient.invalidateQueries({ queryKey: ['pedidos-admin'] });
+    },
+  });
+}
+
+export function useCancelarPedido() {
+  const queryClient = useQueryClient();
+
+  return useMutation<OrderFull, Error, { pedidoId: number; motivo: string }>({
+    mutationFn: async ({ pedidoId, motivo }) => {
+      const { data } = await apiClient.patch(ENDPOINTS.PEDIDOS.CANCEL(pedidoId), { motivo });
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['pedido', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['mis-pedidos'] });
+      queryClient.invalidateQueries({ queryKey: ['pedidos-admin'] });
+    },
+  });
+}

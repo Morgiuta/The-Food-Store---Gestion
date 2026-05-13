@@ -41,6 +41,8 @@ export const ENDPOINTS = {
     HISTORY: (id: number) => `${PEDIDOS}/${id}/historial`,
     VALIDAR: `${PEDIDOS}/validar`,
     CALCULAR_TOTAL: `${PEDIDOS}/calcular-total`,
+    CHANGE_STATUS: (id: number) => `${PEDIDOS}/${id}/estado`,
+    CANCEL: (id: number) => `${PEDIDOS}/${id}/cancelar`,
     ADMIN_ALL: `${PEDIDOS}/admin/all`,
   },
   PAGOS: {
