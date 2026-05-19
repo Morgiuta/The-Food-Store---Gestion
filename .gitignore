@@ -62,6 +62,10 @@ lerna-debug.log*
 
 # Vite
 .vite/
+vite.config.d.ts
+
+# TypeScript incremental builds
+*.tsbuildinfo
 
 # ==================== Environment Variables ====================
 # NEVER commit .env files with secrets
@@ -69,6 +73,8 @@ lerna-debug.log*
 .env.local
 .env.*.local
 .env.production.local
+!.env.example
+!*.env.example
 
 # ==================== IDEs & Editors ====================
 .vscode/
@@ -131,6 +137,7 @@ docker-compose.override.yml
 *.backup
 .tmp/
 temp/
+tmp/
 
 # ==================== IDE-specific ====================
 .vscode/extensions.json
