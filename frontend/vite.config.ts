@@ -26,11 +26,6 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
     open: true,
-    hmr: {
-      host: 'localhost',
-      port: 5173,
-      protocol: 'ws',
-    },
   },
   build: {
     outDir: 'dist',
@@ -38,10 +33,10 @@ export default defineConfig({
     minify: 'terser',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'router': ['react-router-dom'],
-          'query': ['@tanstack/react-query'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react')) return 'react-vendor'
+          if (id.includes('node_modules/react-router-dom')) return 'router'
+          if (id.includes('node_modules/@tanstack/react-query')) return 'query'
         },
       },
     },
@@ -49,4 +44,4 @@ export default defineConfig({
   preview: {
     port: 4173,
   },
-})
+} as Parameters<typeof defineConfig>[0])

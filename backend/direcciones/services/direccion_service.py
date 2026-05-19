@@ -29,7 +29,9 @@ class DireccionService:
         data["usuario_id"] = usuario_id
         data["es_predeterminada"] = count == 0  # First address is default
         direccion = DireccionEntrega(**data)
-        return await repo.create(direccion)
+        created = await repo.create(direccion)
+        await session.commit()
+        return created
 
     async def update(
         self, session, direccion_id: int, usuario_id: int, data: dict
@@ -39,6 +41,7 @@ class DireccionService:
         if not existing:
             raise NotFoundException("Dirección no encontrada")
         updated = await repo.update(direccion_id, data)
+        await session.commit()
         return updated
 
     async def delete(self, session, direccion_id: int, usuario_id: int) -> None:
@@ -47,6 +50,7 @@ class DireccionService:
         if not existing:
             raise NotFoundException("Dirección no encontrada")
         await repo.soft_delete(direccion_id)
+        await session.commit()
 
     async def set_predeterminada(
         self, session, direccion_id: int, usuario_id: int
@@ -56,4 +60,5 @@ class DireccionService:
         if not existing:
             raise NotFoundException("Dirección no encontrada")
         updated = await repo.set_predeterminada(direccion_id, usuario_id)
+        await session.commit()
         return updated

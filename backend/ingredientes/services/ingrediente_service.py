@@ -31,7 +31,9 @@ class IngredienteService:
         if existing:
             raise ConflictException("Ya existe un ingrediente con ese nombre")
         ingrediente = Ingrediente(**data)
-        return await repo.create(ingrediente)
+        created = await repo.create(ingrediente)
+        await session.commit()
+        return created
 
     async def update(self, session, ingrediente_id: int, data: dict) -> Ingrediente:
         repo = IngredienteRepository(session)
@@ -45,6 +47,7 @@ class IngredienteService:
                 raise ConflictException("Ya existe un ingrediente con ese nombre")
 
         updated = await repo.update(ingrediente_id, data)
+        await session.commit()
         return updated
 
     async def delete(self, session, ingrediente_id: int) -> None:
@@ -53,3 +56,4 @@ class IngredienteService:
         if not existing or existing.eliminado_en is not None:
             raise NotFoundException("Ingrediente no encontrado")
         await repo.soft_delete(ingrediente_id)
+        await session.commit()

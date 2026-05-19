@@ -49,8 +49,8 @@ export function useCart() {
     updateQuantity: updateQuantityWithPersonalization,
     clearCart,
     getTotalPrice,
-    totalItems,
-    totalPrice,
+    totalItems: totalItems(),
+    totalPrice: totalPrice(),
     canExcludeIngredient,
     // También exponer los métodos base del store
     addItemRaw: addItem,

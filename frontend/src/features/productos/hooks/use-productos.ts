@@ -44,7 +44,7 @@ export function useCreateProducto() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: ProductCreate) =>
-      apiClient.post(ENDPOINTS.PRODUCTOS.ADMIN, data).then((r) => r.data),
+      apiClient.post(ENDPOINTS.PRODUCTOS.BASE, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['productos'] });
       qc.invalidateQueries({ queryKey: ['catalogo'] });

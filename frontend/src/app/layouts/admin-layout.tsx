@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/app/store/auth-store';
 
@@ -11,26 +10,12 @@ const sidebarLinks = [
   { to: '/admin/pedidos', label: 'Pedidos', icon: '📦' },
   { to: '/admin/pagos', label: 'Pagos', icon: '💳' },
   { to: '/admin/config', label: 'Configuración', icon: '⚙️' },
-  { to: '/admin/audit', label: 'Auditoría', icon: '📋' },
 ];
 
 export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = searchQuery.trim();
-    if (!q) return;
-    if (/^\d+$/.test(q)) {
-      navigate(`/admin/pedidos?search=${q}`);
-    } else {
-      navigate(`/admin/productos?search=${encodeURIComponent(q)}`);
-    }
-    setSearchQuery('');
-  };
 
   const handleLogout = () => {
     logout();
@@ -95,20 +80,6 @@ export function AdminLayout() {
       </aside>
 
       <main className="flex-1 bg-gray-50 overflow-auto">
-        <div className="bg-white border-b border-gray-200 px-6 py-3">
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar pedido por ID o producto..."
-              className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
-            />
-            <button type="submit" className="bg-amber-500 text-white px-4 py-2 rounded-md text-sm hover:bg-amber-600">
-              Buscar
-            </button>
-          </form>
-        </div>
         <div className="p-6">
           <Outlet />
         </div>

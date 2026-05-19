@@ -23,16 +23,25 @@ interface RegisterData {
   telefono?: string;
 }
 
+type AuthResponse = LoginResponse | ApiResponse<LoginResponse>;
+
+function unwrapAuthResponse(response: AuthResponse): LoginResponse {
+  if ('data' in response) {
+    return response.data;
+  }
+  return response;
+}
+
 export function useAuth() {
   const { user, isAuthenticated, setAuth, logout: storeLogout } = useAuthStore();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
+      const { data } = await apiClient.post<AuthResponse>(
         ENDPOINTS.AUTH.LOGIN,
         credentials,
       );
-      return data.data;
+      return unwrapAuthResponse(data);
     },
     onSuccess: (response) => {
       const tokens: AuthTokens = {
@@ -46,11 +55,11 @@ export function useAuth() {
 
   const registerMutation = useMutation({
     mutationFn: async (registerData: RegisterData) => {
-      const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
+      const { data } = await apiClient.post<AuthResponse>(
         ENDPOINTS.AUTH.REGISTER,
         registerData,
       );
-      return data.data;
+      return unwrapAuthResponse(data);
     },
     onSuccess: (response) => {
       const tokens: AuthTokens = {

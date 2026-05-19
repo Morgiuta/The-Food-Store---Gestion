@@ -52,19 +52,19 @@ describe('cartStore', () => {
 
   it('should remove item from cart', () => {
     useCartStore.getState().addItem(mockProduct);
-    useCartStore.getState().removeItem(1, null);
+    useCartStore.getState().removeItem(1);
     expect(useCartStore.getState().items).toHaveLength(0);
   });
 
   it('should update quantity', () => {
     useCartStore.getState().addItem(mockProduct);
-    useCartStore.getState().updateQuantity(1, 5, null);
+    useCartStore.getState().updateQuantity(1, 5);
     expect(useCartStore.getState().items[0].cantidad).toBe(5);
   });
 
   it('should remove item if quantity set to 0', () => {
     useCartStore.getState().addItem(mockProduct);
-    useCartStore.getState().updateQuantity(1, 0, null);
+    useCartStore.getState().updateQuantity(1, 0);
     expect(useCartStore.getState().items).toHaveLength(0);
   });
 

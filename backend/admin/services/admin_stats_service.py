@@ -2,17 +2,17 @@
 Admin service for dashboard statistics and metrics.
 """
 from datetime import date, datetime, timezone, timedelta
-from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import func, select, case
+from sqlalchemy import func, literal_column, select
 
+from backend.auth.models.usuario import Usuario
 from backend.core.uow import UnitOfWork
-from backend.pedidos.models.pedido import Pedido
+from backend.pagos.models.pago import Pago
 from backend.pedidos.models.detalle_pedido import DetallePedido
 from backend.pedidos.models.estado_pedido import EstadoPedido
+from backend.pedidos.models.pedido import Pedido
 from backend.productos.models.producto import Producto
-from backend.auth.models.usuario import Usuario
 
 ID_PENDIENTE = 1
 
@@ -23,8 +23,13 @@ class AdminStatsService:
     async def get_stats(self, uow: UnitOfWork) -> dict[str, Any]:
         """Get main KPIs for the dashboard."""
         stmt_ventas = select(
-            func.coalesce(func.sum(Pedido.total), 0)
-        ).where(Pedido.estado_id > ID_PENDIENTE, Pedido.eliminado_en.is_(None))
+            func.coalesce(func.sum(Pago.monto), 0)
+        ).join(
+            Pedido, Pago.pedido_id == Pedido.id
+        ).where(
+            Pago.mp_status == "approved",
+            Pedido.eliminado_en.is_(None),
+        )
         result = await uow._session.execute(stmt_ventas)
         total_ventas = result.scalar_one()
 
@@ -58,7 +63,7 @@ class AdminStatsService:
         }
 
     async def get_revenue(self, uow: UnitOfWork, periodo: str = "day") -> list[dict[str, Any]]:
-        """Get revenue aggregated by period (day, week, month)."""
+        """Get received payments aggregated by period (day, week, month)."""
         if periodo == "week":
             trunc = "week"
             days_back = 28
@@ -70,18 +75,21 @@ class AdminStatsService:
             days_back = 7
 
         desde = datetime.now(timezone.utc) - timedelta(days=days_back)
+        fecha_bucket = func.date_trunc(literal_column(f"'{trunc}'"), Pago.creado_en)
 
         stmt = select(
-            func.date_trunc(trunc, Pedido.creado_en).label("fecha"),
-            func.sum(Pedido.total).label("ingresos"),
+            fecha_bucket.label("fecha"),
+            func.sum(Pago.monto).label("ingresos"),
+        ).join(
+            Pedido, Pago.pedido_id == Pedido.id
         ).where(
-            Pedido.creado_en >= desde,
-            Pedido.estado_id > ID_PENDIENTE,
+            Pago.creado_en >= desde,
+            Pago.mp_status == "approved",
             Pedido.eliminado_en.is_(None),
         ).group_by(
-            func.date_trunc(trunc, Pedido.creado_en)
+            fecha_bucket
         ).order_by(
-            func.date_trunc(trunc, Pedido.creado_en)
+            fecha_bucket
         )
 
         result = await uow._session.execute(stmt)
@@ -136,8 +144,10 @@ class AdminStatsService:
             Producto, DetallePedido.producto_id == Producto.id
         ).join(
             Pedido, DetallePedido.pedido_id == Pedido.id
+        ).join(
+            Pago, Pago.pedido_id == Pedido.id
         ).where(
-            Pedido.estado_id > ID_PENDIENTE,
+            Pago.mp_status == "approved",
             Pedido.eliminado_en.is_(None),
         ).group_by(
             DetallePedido.producto_id, Producto.nombre

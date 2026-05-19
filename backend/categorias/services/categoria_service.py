@@ -35,6 +35,7 @@ class CategoriaService:
                 raise NotFoundException("Categoría padre no encontrada")
         categoria = Categoria(**data)
         created = await repo.create(categoria)
+        await session.commit()
         return self._categoria_to_dict(created)
 
     async def update(self, session, categoria_id: int, data: dict) -> dict:
@@ -55,6 +56,7 @@ class CategoriaService:
                 raise ConflictException("La asignación crearía un ciclo en la jerarquía")
 
         updated = await repo.update(categoria_id, data)
+        await session.commit()
         return self._categoria_to_dict(updated)
 
     async def delete(self, session, categoria_id: int) -> None:
@@ -68,6 +70,7 @@ class CategoriaService:
                 "No se puede eliminar: la categoría tiene productos asociados"
             )
         await repo.soft_delete(categoria_id)
+        await session.commit()
 
     def _build_tree(self, categoria: Categoria) -> dict:
         return {

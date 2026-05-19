@@ -9,11 +9,22 @@ interface CatalogoParams {
   per_page?: number;
 }
 
+interface ProductListResponse {
+  items: Product[];
+  total: number;
+}
+
+function unwrapProductList(data: Product[] | ProductListResponse): Product[] {
+  return Array.isArray(data) ? data : data.items;
+}
+
 export function useCatalogo(params?: CatalogoParams) {
   return useQuery<Product[]>({
     queryKey: ['catalogo', params],
     queryFn: () =>
-      apiClient.get(ENDPOINTS.PRODUCTOS.BASE, { params }).then((r) => r.data),
+      apiClient
+        .get<Product[] | ProductListResponse>(ENDPOINTS.PRODUCTOS.BASE, { params })
+        .then((r) => unwrapProductList(r.data)),
   });
 }
 
@@ -30,7 +41,9 @@ export function useSearchProductos(params: SearchParams) {
   return useQuery<Product[]>({
     queryKey: ['productos', 'search', params],
     queryFn: () =>
-      apiClient.get('/productos/search', { params }).then((r) => r.data),
+      apiClient
+        .get<Product[] | ProductListResponse>('/productos/search', { params })
+        .then((r) => unwrapProductList(r.data)),
     enabled: !!params.q || !!params.categoria_id || !!params.precio_min,
   });
 }

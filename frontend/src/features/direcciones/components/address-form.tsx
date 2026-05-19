@@ -15,7 +15,7 @@ const direccionSchema = z.object({
   referencia: z.string().optional(),
 });
 
-type DireccionFormData = z.infer<typeof direccionSchema>;
+export type DireccionFormData = z.infer<typeof direccionSchema>;
 
 interface AddressFormProps {
   onSubmit: (data: DireccionFormData) => void;

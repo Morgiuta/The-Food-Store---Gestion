@@ -10,6 +10,7 @@ import { useUIStore } from '@/app/store/ui-store';
 import type { Ingrediente } from '@/features/ingredientes/hooks/use-ingredientes';
 
 export default function IngredientesPage() {
+  const [search, setSearch] = useState('');
   const [soloAlergenos, setSoloAlergenos] = useState(false);
   const { data: ingredientes, isLoading, isError, error } = useIngredientes(
     soloAlergenos ? { es_alergeno: true } : undefined,
@@ -21,6 +22,13 @@ export default function IngredientesPage() {
     useState<Ingrediente | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredIngredientes = ingredientes?.filter((ing) => {
+    if (!normalizedSearch) return true;
+    return [ing.nombre, ing.descripcion]
+      .filter(Boolean)
+      .some((value) => value!.toLowerCase().includes(normalizedSearch));
+  });
 
   const handleDelete = (ing: Ingrediente) => {
     if (!window.confirm(`¿Eliminar el ingrediente "${ing.nombre}"?`)) return;
@@ -66,18 +74,32 @@ export default function IngredientesPage() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-2">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={soloAlergenos}
-            onChange={(e) => setSoloAlergenos(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400"
-          />
-          <span className="text-sm text-gray-700 select-none">
-            Mostrar solo alérgenos
-          </span>
-        </label>
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Buscar ingrediente
+            </label>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Nombre o descripción"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer pb-2">
+            <input
+              type="checkbox"
+              checked={soloAlergenos}
+              onChange={(e) => setSoloAlergenos(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400"
+            />
+            <span className="text-sm text-gray-700 select-none">
+              Mostrar solo alérgenos
+            </span>
+          </label>
+        </div>
       </div>
 
       {isLoading && (
@@ -98,22 +120,26 @@ export default function IngredientesPage() {
         </div>
       )}
 
-      {!isLoading && !isError && (!ingredientes || ingredientes.length === 0) && (
+      {!isLoading && !isError && (!filteredIngredientes || filteredIngredientes.length === 0) && (
         <div className="text-center py-16">
           <p className="text-gray-500 text-lg mb-1">
-            {soloAlergenos
+            {search
+              ? 'No hay ingredientes que coincidan con la búsqueda'
+              : soloAlergenos
               ? 'No hay alérgenos registrados'
               : 'No hay ingredientes'}
           </p>
           <p className="text-sm text-gray-400">
-            {soloAlergenos
+            {search
+              ? 'Probá con otro nombre o descripción.'
+              : soloAlergenos
               ? 'Ningún ingrediente está marcado como alérgeno.'
               : 'Creá el primer ingrediente para empezar.'}
           </p>
         </div>
       )}
 
-      {!isLoading && !isError && ingredientes && ingredientes.length > 0 && (
+      {!isLoading && !isError && filteredIngredientes && filteredIngredientes.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -131,7 +157,7 @@ export default function IngredientesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {ingredientes.map((ing) => (
+                {filteredIngredientes.map((ing) => (
                   <tr
                     key={ing.id}
                     className="hover:bg-gray-50 transition-colors"

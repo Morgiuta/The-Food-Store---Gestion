@@ -44,12 +44,21 @@ export const useAuthStore = create<AuthState>()(
       }),
       logout: () => set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false }),
       updateUser: (user) => set({ user }),
-      setTokens: (tokens) => set({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token }),
+      setTokens: (tokens) => set({
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        isAuthenticated: true,
+      }),
       hasRole: (role) => get().user?.roles?.includes(role) ?? false,
     }),
     {
       name: 'food-store-auth',
-      partialize: (state) => ({ accessToken: state.accessToken }),
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

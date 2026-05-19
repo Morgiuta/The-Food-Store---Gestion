@@ -2,10 +2,12 @@ from typing import Optional, Sequence
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from backend.core.base_repository import BaseRepository
 from backend.productos.models.producto import Producto
 from backend.productos.models.producto_categoria import ProductoCategoria
+from backend.productos.models.producto_ingrediente import ProductoIngrediente
 
 
 class ProductoRepository(BaseRepository[Producto]):
@@ -27,7 +29,16 @@ class ProductoRepository(BaseRepository[Producto]):
                 stmt.join(ProductoCategoria)
                 .where(ProductoCategoria.categoria_id == categoria_id)
             )
-        stmt = stmt.offset(skip).limit(limit).order_by(Producto.nombre)
+        stmt = (
+            stmt
+            .offset(skip)
+            .limit(limit)
+            .order_by(Producto.nombre)
+            .options(
+                selectinload(Producto.categorias).selectinload(ProductoCategoria.categoria),
+                selectinload(Producto.ingredientes).selectinload(ProductoIngrediente.ingrediente),
+            )
+        )
         result = await self._session.execute(stmt)
         return result.scalars().all()
 

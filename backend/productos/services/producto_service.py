@@ -33,7 +33,7 @@ class ProductoService:
         total = result.scalar_one()
 
         return {
-            "items": [self._producto_to_dict(p) for p in items],
+            "items": [self._producto_to_dict(p, include_relations=True) for p in items],
             "total": total,
         }
 
@@ -138,7 +138,9 @@ class ProductoService:
             await session.flush()
 
         await session.refresh(producto)
-        return await self.get_by_id(session, producto.id)
+        created = await self.get_by_id(session, producto.id)
+        await session.commit()
+        return created
 
     async def update(self, session, producto_id: int, data: dict) -> dict:
         repo = ProductoRepository(session)
@@ -183,7 +185,9 @@ class ProductoService:
                 session.add(pi)
             await session.flush()
 
-        return await self.get_by_id(session, producto_id)
+        updated = await self.get_by_id(session, producto_id)
+        await session.commit()
+        return updated
 
     async def delete(self, session, producto_id: int) -> None:
         repo = ProductoRepository(session)
@@ -191,6 +195,7 @@ class ProductoService:
         if not existing:
             raise NotFoundException("Producto no encontrado")
         await repo.soft_delete(producto_id)
+        await session.commit()
 
     async def toggle_disponibilidad(self, uow, producto_id: int) -> Producto:
         from sqlalchemy import select

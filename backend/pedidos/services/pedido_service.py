@@ -5,10 +5,11 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from backend.auth.models.direccion import DireccionEntrega
+from backend.auth.models.usuario import Usuario
 from backend.core.exceptions import ForbiddenException, ValidationException
 from backend.core.uow import UnitOfWork
 from backend.pedidos.models.detalle_pedido import DetallePedido
@@ -221,10 +222,33 @@ class PedidoService:
         base_query = select(Pedido).where(Pedido.eliminado_en.is_(None))
         count_query = select(func.count()).select_from(Pedido).where(Pedido.eliminado_en.is_(None))
 
-        if search and search.isdigit():
-            pedido_id = int(search)
-            base_query = base_query.where(Pedido.id == pedido_id)
-            count_query = count_query.where(Pedido.id == pedido_id)
+        normalized_search = search.strip() if search else None
+        if normalized_search:
+            if normalized_search.isdigit():
+                search_id = int(normalized_search)
+                search_clause = or_(
+                    Pedido.id == search_id,
+                    Pedido.usuario_id == search_id,
+                )
+            else:
+                search_like = f"%{normalized_search}%"
+                search_clause = or_(
+                    exists()
+                    .where(Usuario.id == Pedido.usuario_id)
+                    .where(
+                        or_(
+                            Usuario.nombre.ilike(search_like),
+                            Usuario.email.ilike(search_like),
+                        )
+                    ),
+                    exists()
+                    .where(DetallePedido.pedido_id == Pedido.id)
+                    .where(DetallePedido.nombre_snapshot.ilike(search_like)),
+                    Pedido.direccion_snapshot.ilike(search_like),
+                )
+
+            base_query = base_query.where(search_clause)
+            count_query = count_query.where(search_clause)
 
         if estado_id is not None:
             base_query = base_query.where(Pedido.estado_id == estado_id)

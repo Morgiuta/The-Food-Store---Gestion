@@ -20,8 +20,6 @@ export function ShippingCalculator({
 }: ShippingCalculatorProps) {
   const navigate = useNavigate();
 
-  const direccionSeleccionada = direcciones.find((d) => d.id === selectedDireccionId);
-
   return (
     <div className="bg-gray-50 rounded-lg p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Dirección de Entrega</h2>

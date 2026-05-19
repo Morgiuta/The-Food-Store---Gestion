@@ -44,14 +44,16 @@ export function usePedidosAdmin(
   estadoId?: number,
   fechaDesde?: Date,
   fechaHasta?: Date,
+  search?: string,
 ) {
   return useQuery<PaginatedResponse<Order>>({
-    queryKey: ['pedidos-admin', page, size, estadoId, fechaDesde, fechaHasta],
+    queryKey: ['pedidos-admin', page, size, estadoId, fechaDesde, fechaHasta, search],
     queryFn: async () => {
       const params: Record<string, string | number> = { page, size };
       if (estadoId !== undefined) params.estado_id = estadoId;
       if (fechaDesde) params.fecha_desde = fechaDesde.toISOString();
       if (fechaHasta) params.fecha_hasta = fechaHasta.toISOString();
+      if (search) params.search = search;
       const { data } = await apiClient.get(ENDPOINTS.PEDIDOS.ADMIN_ALL, { params });
       return data;
     },

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { ChevronDown, ShoppingCart } from 'lucide-react';
 import { useAuthStore } from '@/app/store/auth-store';
+import { useCartStore } from '@/app/store/cart-store';
 
 type NavItem = { label: string; path: string };
 
@@ -10,45 +12,65 @@ const navItems: Record<string, NavItem[]> = {
   ],
   client: [
     { label: 'Catálogo', path: '/productos' },
-    { label: 'Mi Carrito', path: '/carrito' },
-    { label: 'Mis Pedidos', path: '/mis-pedidos' },
-    { label: 'Mis Direcciones', path: '/mis-direcciones' },
-    { label: 'Mi Perfil', path: '/perfil' },
   ],
   stock: [
-    { label: 'Dashboard', path: '/admin/dashboard' },
-    { label: 'Productos', path: '/admin/productos' },
-    { label: 'Categorías', path: '/admin/categorias' },
-    { label: 'Ingredientes', path: '/admin/ingredientes' },
+    { label: 'Admin', path: '/admin/dashboard' },
   ],
   pedidos: [
-    { label: 'Dashboard', path: '/admin/dashboard' },
-    { label: 'Pedidos', path: '/admin/pedidos' },
+    { label: 'Admin', path: '/admin/dashboard' },
   ],
   admin: [
-    { label: 'Dashboard', path: '/admin/dashboard' },
-    { label: 'Usuarios', path: '/admin/usuarios' },
-    { label: 'Productos', path: '/admin/productos' },
-    { label: 'Categorías', path: '/admin/categorias' },
-    { label: 'Ingredientes', path: '/admin/ingredientes' },
-    { label: 'Pedidos', path: '/admin/pedidos' },
+    { label: 'Admin', path: '/admin/dashboard' },
   ],
 };
 
+const userMenuItems: NavItem[] = [
+  { label: 'Mis pedidos', path: '/mis-pedidos' },
+  { label: 'Mis direcciones', path: '/mis-direcciones' },
+  { label: 'Mi perfil', path: '/perfil' },
+];
+
 function getNavItems(user: { roles?: string[] } | null, isAuthenticated: boolean): NavItem[] {
-  if (!isAuthenticated) return navItems.public;
-  if (user?.roles?.includes('ADMIN')) return [...navItems.public, ...navItems.admin];
-  if (user?.roles?.includes('STOCK')) return [...navItems.public, ...navItems.stock];
-  if (user?.roles?.includes('PEDIDOS')) return [...navItems.public, ...navItems.pedidos];
-  return [...navItems.public, ...navItems.client];
+  const items = !isAuthenticated
+    ? navItems.public
+    : user?.roles?.includes('ADMIN')
+      ? [...navItems.public, ...navItems.admin]
+      : user?.roles?.includes('STOCK')
+        ? [...navItems.public, ...navItems.stock]
+        : user?.roles?.includes('PEDIDOS')
+          ? [...navItems.public, ...navItems.pedidos]
+          : [...navItems.public, ...navItems.client];
+
+  return Array.from(new Map(items.map((item) => [item.path, item])).values());
+}
+
+function CartHeaderLink() {
+  const totalItems = useCartStore((state) => state.totalItems());
+
+  return (
+    <Link
+      to="/carrito"
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-200 transition-colors hover:bg-gray-700 hover:text-amber-400"
+      aria-label={`Carrito con ${totalItems} ${totalItems === 1 ? 'producto' : 'productos'}`}
+    >
+      <ShoppingCart className="h-5 w-5" />
+      {totalItems > 0 && (
+        <span className="absolute -right-1 -top-1 min-w-[1.25rem] rounded-full bg-amber-500 px-1.5 py-0.5 text-center text-[11px] font-bold leading-none text-gray-900">
+          {totalItems > 99 ? '99+' : totalItems}
+        </span>
+      )}
+    </Link>
+  );
 }
 
 export function MainLayout() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    setUserMenuOpen(false);
     logout();
     navigate('/login');
   };
@@ -76,16 +98,47 @@ export function MainLayout() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
+            <CartHeaderLink />
             {isAuthenticated ? (
-              <>
-                <span className="text-sm text-gray-300">{user?.nombre}</span>
+              <div className="relative">
                 <button
-                  onClick={handleLogout}
-                  className="text-sm text-red-300 hover:text-red-100 transition-colors"
+                  type="button"
+                  onClick={() => setUserMenuOpen((open) => !open)}
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-gray-200 transition-colors hover:bg-gray-700 hover:text-amber-400"
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="menu"
                 >
-                  Cerrar sesión
+                  {user?.nombre}
+                  <ChevronDown className={`h-4 w-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
-              </>
+                {userMenuOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-md border border-gray-200 bg-white py-1 text-gray-800 shadow-lg"
+                  >
+                    {userMenuItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        role="menuitem"
+                        className="block px-4 py-2 text-sm hover:bg-amber-50 hover:text-amber-700"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                    <hr className="my-1 border-gray-100" />
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      role="menuitem"
+                      className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link to="/login" className="text-sm hover:text-amber-400 transition-colors">
                 Iniciar sesión
@@ -93,19 +146,22 @@ export function MainLayout() {
             )}
           </div>
 
-          <button
-            className="md:hidden text-gray-300 hover:text-white"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Menú"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {mobileOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <CartHeaderLink />
+            <button
+              className="text-gray-300 hover:text-white"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Menú"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {mobileOpen && (
@@ -124,6 +180,16 @@ export function MainLayout() {
             {isAuthenticated ? (
               <>
                 <span className="block text-sm text-gray-300">{user?.nombre}</span>
+                {userMenuItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className="block text-sm hover:text-amber-400 transition-colors py-1"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
                 <button
                   onClick={() => { handleLogout(); setMobileOpen(false); }}
                   className="text-sm text-red-300 hover:text-red-100 transition-colors py-1"

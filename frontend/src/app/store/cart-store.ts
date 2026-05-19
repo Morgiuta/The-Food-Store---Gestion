@@ -23,7 +23,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addItem: (producto, cantidad = 1, personalizacion = null) =>
+      addItem: (producto, cantidad = 1, personalizacion) =>
         set((state) => {
           // Buscar item existente con mismo producto Y misma personalización
           const existingIndex = state.items.findIndex(
@@ -44,7 +44,7 @@ export const useCartStore = create<CartState>()(
 
           // Agregar nuevo item
           return {
-            items: [...state.items, { producto, cantidad, personalizacion: personalizacion || null }],
+            items: [...state.items, { producto, cantidad, personalizacion }],
           };
         }),
 

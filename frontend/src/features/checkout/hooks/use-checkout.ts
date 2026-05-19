@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/shared/api/client';
 import { ENDPOINTS } from '@/shared/api/endpoints';
-import { useDirecciones, type Direccion } from '@/features/direcciones/hooks/use-direcciones';
+import { useDirecciones } from '@/features/direcciones/hooks/use-direcciones';
 import { useCartStore } from '@/app/store/cart-store';
 
 interface CheckoutItem {

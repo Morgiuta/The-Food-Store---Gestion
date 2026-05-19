@@ -292,7 +292,7 @@ export default function CatalogPage() {
           onClose={() => setModalProducto(null)}
           producto={modalProducto}
           onConfirm={(ingredientesExcluidos) => {
-            addItem(modalProducto, 1, { ingredientesExcluidos });
+            addItem(modalProducto, 1, ingredientesExcluidos);
             setModalProducto(null);
           }}
         />

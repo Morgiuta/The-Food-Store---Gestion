@@ -35,6 +35,33 @@ function TrashIcon() {
   );
 }
 
+function categoriaMatches(categoria: Categoria, search: string) {
+  return [categoria.nombre, categoria.descripcion]
+    .filter(Boolean)
+    .some((value) => value!.toLowerCase().includes(search));
+}
+
+function filterCategoriaTree(items: Categoria[], search: string): Categoria[] {
+  if (!search) return items;
+
+  return items.reduce<Categoria[]>((acc, item) => {
+    const subcategorias = item.subcategorias
+      ? filterCategoriaTree(item.subcategorias, search)
+      : [];
+    if (categoriaMatches(item, search) || subcategorias.length > 0) {
+      acc.push({ ...item, subcategorias });
+    }
+    return acc;
+  }, []);
+}
+
+function collectCategoriaIds(items: Categoria[]): number[] {
+  return items.flatMap((item) => [
+    item.id,
+    ...collectCategoriaIds(item.subcategorias ?? []),
+  ]);
+}
+
 interface CategoriaNodeProps {
   categoria: Categoria;
   expanded: Set<number>;
@@ -119,10 +146,16 @@ export default function CategoriasPage() {
   const deleteMutation = useDeleteCategoria();
   const addNotification = useUIStore((s) => s.addNotification);
 
+  const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [editingCategoria, setEditingCategoria] = useState<Categoria | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredCategorias = categorias ? filterCategoriaTree(categorias, normalizedSearch) : undefined;
+  const visibleExpanded = normalizedSearch
+    ? new Set<number>(collectCategoriaIds(filteredCategorias ?? []))
+    : expanded;
 
   const handleToggle = (id: number) => {
     setExpanded((prev) => {
@@ -178,6 +211,19 @@ export default function CategoriasPage() {
         </Button>
       </div>
 
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Buscar categoría
+        </label>
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Nombre o descripción"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+      </div>
+
       {isLoading && (
         <div className="flex justify-center py-16">
           <Spinner size="lg" />
@@ -193,23 +239,27 @@ export default function CategoriasPage() {
         </div>
       )}
 
-      {!isLoading && !isError && (!categorias || categorias.length === 0) && (
+      {!isLoading && !isError && (!filteredCategorias || filteredCategorias.length === 0) && (
         <div className="text-center py-16">
-          <p className="text-gray-500 text-lg mb-1">No hay categorías</p>
+          <p className="text-gray-500 text-lg mb-1">
+            {search ? 'No hay categorías que coincidan con la búsqueda' : 'No hay categorías'}
+          </p>
           <p className="text-sm text-gray-400">
-            Creá la primera categoría para empezar a organizar el catálogo.
+            {search
+              ? 'Probá con otro nombre o descripción.'
+              : 'Creá la primera categoría para empezar a organizar el catálogo.'}
           </p>
         </div>
       )}
 
-      {!isLoading && !isError && categorias && categorias.length > 0 && (
+      {!isLoading && !isError && filteredCategorias && filteredCategorias.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-4">
-            {categorias.map((cat) => (
+            {filteredCategorias.map((cat) => (
               <CategoriaNode
                 key={cat.id}
                 categoria={cat}
-                expanded={expanded}
+                expanded={visibleExpanded}
                 onToggle={handleToggle}
                 onEdit={openEdit}
                 onDelete={handleDelete}

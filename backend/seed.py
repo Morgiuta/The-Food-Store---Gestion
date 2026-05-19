@@ -6,13 +6,16 @@ Idempotent: safe to run multiple times (uses INSERT ON CONFLICT DO NOTHING).
 
 import asyncio
 
-from sqlalchemy import select, text
+from sqlalchemy import select
 
 from backend.auth.models import Rol, Usuario, UsuarioRol
+from backend.categorias.models import Categoria
+from backend.ingredientes.models import Ingrediente
 from backend.core.database import async_session_factory
 from backend.core.security import get_password_hash
 from backend.pagos.models import FormaPago
-from backend.pedidos.models import EstadoPedido
+from backend.pedidos.models import EstadoPedido, DetallePedido, Pedido
+from backend.productos.models import Producto, ProductoCategoria, ProductoIngrediente
 
 
 async def seed_database() -> None:
@@ -48,9 +51,16 @@ async def seed_database() -> None:
                 session.add(admin_user)
                 await session.flush()
 
-                # Asignar rol ADMIN
-                admin_role = await session.execute(select(Rol).where(Rol.nombre == "ADMIN"))
-                admin_role = admin_role.scalar_one()
+            # Asignar rol ADMIN
+            admin_role = await session.execute(select(Rol).where(Rol.nombre == "ADMIN"))
+            admin_role = admin_role.scalar_one()
+            existing_admin_role = await session.execute(
+                select(UsuarioRol).where(
+                    UsuarioRol.usuario_id == admin_user.id,
+                    UsuarioRol.rol_id == admin_role.id,
+                )
+            )
+            if not existing_admin_role.scalar_one_or_none():
                 session.add(UsuarioRol(usuario_id=admin_user.id, rol_id=admin_role.id))
 
             # Estados de pedido — ON CONFLICT DO NOTHING por nombre UNIQUE

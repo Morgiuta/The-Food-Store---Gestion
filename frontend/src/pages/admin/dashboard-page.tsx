@@ -37,7 +37,7 @@ export default function AdminDashboardPage() {
   const { data: ordersByStatus, isLoading: ordersLoading } = useOrdersByStatus();
   const { data: productsStats, isLoading: productsLoading } = useProductsStats();
 
-  const isLoading = statsLoading || revenueLoading || ordersLoading || productsLoading;
+  const isLoading = statsLoading || ordersLoading || productsLoading;
 
   if (isLoading) {
     return <div className="flex justify-center py-16"><Spinner size="lg" /></div>;
@@ -93,16 +93,25 @@ export default function AdminDashboardPage() {
               ))}
             </div>
           </div>
-          {revenue && revenue.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={revenue}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="fecha" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                <Bar dataKey="ingresos" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          {revenueLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Spinner size="md" />
+            </div>
+          ) : revenue && revenue.length > 0 ? (
+            <div className="h-64 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenue} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="fechaLabel" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    labelFormatter={(_, payload) => payload?.[0]?.payload?.fechaLabel ?? ''}
+                    formatter={(value) => [formatCurrency(Number(value)), 'Ingresos']}
+                  />
+                  <Bar dataKey="ingresos" fill="#F59E0B" radius={[4, 4, 0, 0]} minPointSize={3} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-400">
               Sin datos de ingresos

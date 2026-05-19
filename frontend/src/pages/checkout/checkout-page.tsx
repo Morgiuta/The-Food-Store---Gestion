@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { OrderSummary } from '@/features/checkout/components/order-summary';
 import { ShippingCalculator } from '@/features/checkout/components/shipping-calculator';

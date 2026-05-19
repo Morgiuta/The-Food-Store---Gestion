@@ -11,6 +11,12 @@ interface AdminStats {
 
 interface RevenueEntry {
   fecha: string;
+  ingresos: number | string;
+}
+
+export interface RevenueChartEntry {
+  fecha: string;
+  fechaLabel: string;
   ingresos: number;
 }
 
@@ -42,18 +48,40 @@ export function useAdminStats() {
     queryKey: ['admin-stats'],
     queryFn: async () => {
       const { data } = await apiClient.get(ENDPOINTS.ADMIN.STATS);
-      return data;
+      return {
+        ...data,
+        total_ventas: Number(data.total_ventas),
+      };
     },
     refetchInterval: 5 * 60 * 1000,
   });
 }
 
+function formatRevenueDate(fecha: string, periodo: string) {
+  const date = new Date(fecha);
+  if (Number.isNaN(date.getTime())) return fecha;
+
+  if (periodo === 'month') {
+    return date.toLocaleDateString('es-AR', { month: 'short', year: '2-digit' });
+  }
+
+  if (periodo === 'week') {
+    return `Sem. ${date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}`;
+  }
+
+  return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+}
+
 export function useRevenue(periodo: string = 'day') {
-  return useQuery<RevenueEntry[]>({
+  return useQuery<RevenueChartEntry[]>({
     queryKey: ['admin-revenue', periodo],
     queryFn: async () => {
       const { data } = await apiClient.get(ENDPOINTS.ADMIN.STATS_REVENUE, { params: { periodo } });
-      return data;
+      return (data as RevenueEntry[]).map((entry) => ({
+        fecha: entry.fecha,
+        fechaLabel: formatRevenueDate(entry.fecha, periodo),
+        ingresos: Number(entry.ingresos),
+      }));
     },
   });
 }

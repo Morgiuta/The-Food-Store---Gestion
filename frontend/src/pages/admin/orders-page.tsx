@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { usePedidosAdmin } from '@/features/pedidos/hooks/useOrders';
 import { OrderStatusBadge } from '@/features/pedidos/components/order-status-badge';
 import { OrderDetailModal } from '@/features/pedidos/components/order-detail-modal';
@@ -18,7 +19,11 @@ const ESTADOS = [
 ];
 
 export default function AdminOrdersPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') ?? '';
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(initialSearch);
+  const [appliedSearch, setAppliedSearch] = useState(initialSearch);
   const [estadoId, setEstadoId] = useState<string>('');
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
@@ -33,7 +38,7 @@ export default function AdminOrdersPage() {
   const fechaHastaDate = fechaHasta ? new Date(fechaHasta + 'T23:59:59') : undefined;
 
   const { data, isLoading, error } = usePedidosAdmin(
-    page, 20, estadoIdNum, fechaDesdeDate, fechaHastaDate
+    page, 20, estadoIdNum, fechaDesdeDate, fechaHastaDate, appliedSearch || undefined
   );
 
   const handleViewDetail = (id: number) => {
@@ -52,9 +57,23 @@ export default function AdminOrdersPage() {
     setChangeStatusOpen(true);
   };
 
-  const handleFilter = useCallback(() => {
+  const handleFilter = useCallback((event?: FormEvent) => {
+    event?.preventDefault();
     setPage(1);
-  }, []);
+    const q = search.trim();
+    setAppliedSearch(q);
+    setSearchParams(q ? { search: q } : {});
+  }, [search, setSearchParams]);
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setAppliedSearch('');
+    setEstadoId('');
+    setFechaDesde('');
+    setFechaHasta('');
+    setPage(1);
+    setSearchParams({});
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-AR', {
@@ -81,7 +100,17 @@ export default function AdminOrdersPage() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form onSubmit={handleFilter} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Buscar pedido</label>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ID, cliente, email, producto o dirección"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
             <select
@@ -112,12 +141,17 @@ export default function AdminOrdersPage() {
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
             />
           </div>
-          <div className="flex items-end">
-            <Button onClick={handleFilter} variant="outline" className="w-full">
+          <div className="flex items-end gap-2 md:col-span-5">
+            <Button type="submit" variant="outline">
               Filtrar
             </Button>
+            {(search || estadoId || fechaDesde || fechaHasta) && (
+              <Button type="button" variant="outline" onClick={handleClearFilters}>
+                Limpiar
+              </Button>
+            )}
           </div>
-        </div>
+        </form>
       </div>
 
       {/* Loading */}

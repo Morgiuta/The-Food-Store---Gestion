@@ -13,7 +13,11 @@ export function useCart() {
     getTotalPrice,
   } = useCartStore();
 
-  const addProduct = (producto: Product, cantidad = 1, personalizacion?: string) => {
+  const addProduct = (
+    producto: Product,
+    cantidad = 1,
+    personalizacion?: { ingredientesExcluidos: number[] },
+  ) => {
     addItem(producto, cantidad, personalizacion);
   };
 
